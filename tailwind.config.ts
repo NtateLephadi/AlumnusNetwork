@@ -6,9 +6,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Roboto', 'sans-serif'],
-        'body': ['Roboto', 'sans-serif'],
-        'heading': ['Roboto', 'sans-serif'],
+        'sans': ['Inter', 'sans-serif'],
+        'body': ['Inter', 'sans-serif'],
+        'heading': ['Poppins', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
