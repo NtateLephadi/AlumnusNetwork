@@ -6,7 +6,7 @@ export default function Navigation() {
   const { user } = useAuth();
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-uct-navy via-uct-blue to-uct-navy shadow-lg border-b-2 border-uct-gold sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
@@ -16,16 +16,19 @@ export default function Navigation() {
                 alt="UCT Student Christian Fellowship Logo" 
                 className="h-10 w-10 rounded-full"
               />
-              <span className="ml-3 text-xl font-heading font-semibold text-gray-900 hidden sm:block">SCF Alumni</span>
+              <span className="ml-3 text-xl font-heading font-semibold text-white hidden sm:block">
+                SCF Alumni
+                <span className="text-uct-gold text-sm block font-normal">Since 1985</span>
+              </span>
             </div>
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
-            <a href="/" className="text-uct-blue font-medium border-b-2 border-uct-blue pb-4">Dashboard</a>
-            <a href="/events" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Events</a>
-            <a href="#donations" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Donations</a>
+            <a href="/" className="text-uct-gold font-medium border-b-2 border-uct-gold pb-4">Dashboard</a>
+            <a href="/events" className="text-white hover:text-uct-gold transition-colors pb-4">Events</a>
+            <a href="#donations" className="text-white hover:text-uct-gold transition-colors pb-4">Donations</a>
             {(user as any)?.isAdmin && (
-              <a href="/admin/users" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">
+              <a href="/admin/users" className="text-white hover:text-uct-gold transition-colors pb-4">
                 <i className="fas fa-users mr-2"></i>User Management
               </a>
             )}
