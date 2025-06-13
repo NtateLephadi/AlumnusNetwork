@@ -357,23 +357,29 @@ export class DatabaseStorage implements IStorage {
         order: featuredEvents.order,
         isActive: featuredEvents.isActive,
         createdAt: featuredEvents.createdAt,
-        event: {
-          id: events.id,
-          organizerId: events.organizerId,
-          title: events.title,
-          description: events.description,
-          venue: events.venue,
-          date: events.date,
-          time: events.time,
-          speakers: events.speakers,
-          donationGoal: events.donationGoal,
-          imageUrl: events.imageUrl,
-          createdAt: events.createdAt,
-          updatedAt: events.updatedAt,
-          organizer: users,
-          attendees: sql<number>`count(distinct ${rsvps.id})`.as('attendees'),
-          totalDonations: sql<number>`coalesce(sum(${donations.amount}), 0)`.as('totalDonations'),
-        }
+        eventId2: events.id,
+        eventOrganizerId: events.organizerId,
+        eventTitle: events.title,
+        eventDescription: events.description,
+        eventVenue: events.venue,
+        eventDate: events.date,
+        eventTime: events.time,
+        eventSpeakers: events.speakers,
+        eventDonationGoal: events.donationGoal,
+        eventImageUrl: events.imageUrl,
+        eventCreatedAt: events.createdAt,
+        eventUpdatedAt: events.updatedAt,
+        organizerId: users.id,
+        organizerEmail: users.email,
+        organizerFirstName: users.firstName,
+        organizerLastName: users.lastName,
+        organizerProfileImageUrl: users.profileImageUrl,
+        organizerIsAdmin: users.isAdmin,
+        organizerStatus: users.status,
+        organizerCreatedAt: users.createdAt,
+        organizerUpdatedAt: users.updatedAt,
+        attendees: sql<number>`count(distinct ${rsvps.id})`.as('attendees'),
+        totalDonations: sql<number>`coalesce(sum(${donations.amount}), 0)`.as('totalDonations'),
       })
       .from(featuredEvents)
       .leftJoin(events, eq(featuredEvents.eventId, events.id))
@@ -385,27 +391,37 @@ export class DatabaseStorage implements IStorage {
       .orderBy(featuredEvents.order);
 
     return featuredEventsWithDetails.map(item => ({
-      id: item.id,
-      eventId: item.eventId,
+      id: item.id!,
+      eventId: item.eventId!,
       order: item.order,
       isActive: item.isActive,
       createdAt: item.createdAt,
       event: {
-        id: item.event.id,
-        organizerId: item.event.organizerId,
-        title: item.event.title,
-        description: item.event.description,
-        venue: item.event.venue,
-        date: item.event.date,
-        time: item.event.time,
-        speakers: item.event.speakers,
-        donationGoal: item.event.donationGoal,
-        imageUrl: item.event.imageUrl,
-        createdAt: item.event.createdAt,
-        updatedAt: item.event.updatedAt,
-        organizer: item.event.organizer!,
-        attendees: Number(item.event.attendees),
-        totalDonations: Number(item.event.totalDonations),
+        id: item.eventId2!,
+        organizerId: item.eventOrganizerId!,
+        title: item.eventTitle!,
+        description: item.eventDescription!,
+        venue: item.eventVenue!,
+        date: item.eventDate!,
+        time: item.eventTime!,
+        speakers: item.eventSpeakers,
+        donationGoal: item.eventDonationGoal,
+        imageUrl: item.eventImageUrl,
+        createdAt: item.eventCreatedAt,
+        updatedAt: item.eventUpdatedAt,
+        organizer: {
+          id: item.organizerId!,
+          email: item.organizerEmail,
+          firstName: item.organizerFirstName,
+          lastName: item.organizerLastName,
+          profileImageUrl: item.organizerProfileImageUrl,
+          isAdmin: item.organizerIsAdmin,
+          status: item.organizerStatus,
+          createdAt: item.organizerCreatedAt,
+          updatedAt: item.organizerUpdatedAt,
+        },
+        attendees: Number(item.attendees),
+        totalDonations: Number(item.totalDonations),
       }
     }));
   }
@@ -519,15 +535,141 @@ export class DatabaseStorage implements IStorage {
     return Number(result.total);
   }
 
+  // Poll operations
+  async getPolls(): Promise<(Poll & { createdBy: User; options: (PollOption & { voteCount: number })[] })[]> {
+    const pollsWithDetails = await db
+      .select({
+        id: polls.id,
+        createdById: polls.createdById,
+        title: polls.title,
+        description: polls.description,
+        isActive: polls.isActive,
+        createdAt: polls.createdAt,
+        expiresAt: polls.expiresAt,
+        createdBy: users,
+      })
+      .from(polls)
+      .leftJoin(users, eq(polls.createdById, users.id))
+      .orderBy(desc(polls.createdAt));
+
+    const pollsWithOptions = await Promise.all(
+      pollsWithDetails.map(async (poll) => {
+        const options = await db
+          .select()
+          .from(pollOptions)
+          .where(eq(pollOptions.pollId, poll.id));
+
+        return {
+          id: poll.id,
+          createdById: poll.createdById,
+          title: poll.title,
+          description: poll.description,
+          isActive: poll.isActive,
+          createdAt: poll.createdAt,
+          expiresAt: poll.expiresAt,
+          createdBy: poll.createdBy!,
+          options: options.map(option => ({
+            ...option,
+            voteCount: option.voteCount || 0,
+          })),
+        };
+      })
+    );
+
+    return pollsWithOptions;
+  }
+
+  async getPoll(id: number): Promise<(Poll & { createdBy: User; options: (PollOption & { voteCount: number })[] }) | undefined> {
+    const [pollWithDetails] = await db
+      .select({
+        id: polls.id,
+        createdById: polls.createdById,
+        title: polls.title,
+        description: polls.description,
+        isActive: polls.isActive,
+        createdAt: polls.createdAt,
+        expiresAt: polls.expiresAt,
+        createdBy: users,
+      })
+      .from(polls)
+      .leftJoin(users, eq(polls.createdById, users.id))
+      .where(eq(polls.id, id));
+
+    if (!pollWithDetails) return undefined;
+
+    const options = await db
+      .select()
+      .from(pollOptions)
+      .where(eq(pollOptions.pollId, id));
+
+    return {
+      id: pollWithDetails.id,
+      createdById: pollWithDetails.createdById,
+      title: pollWithDetails.title,
+      description: pollWithDetails.description,
+      isActive: pollWithDetails.isActive,
+      createdAt: pollWithDetails.createdAt,
+      expiresAt: pollWithDetails.expiresAt,
+      createdBy: pollWithDetails.createdBy!,
+      options: options.map(option => ({
+        ...option,
+        voteCount: option.voteCount || 0,
+      })),
+    };
+  }
+
+  async createPoll(poll: InsertPoll, options: string[]): Promise<Poll> {
+    const [newPoll] = await db
+      .insert(polls)
+      .values(poll)
+      .returning();
+
+    const pollOptionsData = options.map(optionText => ({
+      pollId: newPoll.id,
+      optionText,
+      voteCount: 0,
+    }));
+
+    await db.insert(pollOptions).values(pollOptionsData);
+
+    return newPoll;
+  }
+
+  async votePoll(vote: InsertPollVote): Promise<void> {
+    // Remove existing vote for this user on this poll
+    await db
+      .delete(pollVotes)
+      .where(and(eq(pollVotes.pollId, vote.pollId), eq(pollVotes.userId, vote.userId)));
+
+    // Add new vote
+    await db.insert(pollVotes).values(vote);
+
+    // Update vote count
+    await db
+      .update(pollOptions)
+      .set({ voteCount: sql`${pollOptions.voteCount} + 1` })
+      .where(eq(pollOptions.id, vote.optionId));
+  }
+
+  async getUserPollVote(pollId: number, userId: string): Promise<PollVote | undefined> {
+    const [vote] = await db
+      .select()
+      .from(pollVotes)
+      .where(and(eq(pollVotes.pollId, pollId), eq(pollVotes.userId, userId)));
+    return vote;
+  }
+
   // Stats
   async getStats(): Promise<{
     totalAlumni: number;
     totalDonations: number;
     eventsThisYear: number;
+    pendingUsers: number;
   }> {
     const [totalAlumni] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(users);
+      .from(users)
+      .where(eq(users.status, 'approved'));
 
     const [totalDonationsResult] = await db
       .select({ total: sql<number>`coalesce(sum(${donations.amount}), 0)` })
@@ -538,10 +680,16 @@ export class DatabaseStorage implements IStorage {
       .from(events)
       .where(sql`extract(year from ${events.createdAt}) = extract(year from now())`);
 
+    const [pendingUsers] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.status, 'pending'));
+
     return {
       totalAlumni: Number(totalAlumni.count),
       totalDonations: Number(totalDonationsResult.total),
       eventsThisYear: Number(eventsThisYear.count),
+      pendingUsers: Number(pendingUsers.count),
     };
   }
 }

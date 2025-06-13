@@ -8,9 +8,52 @@ import {
   insertRsvpSchema, 
   insertDonationSchema,
   insertPostCommentSchema,
-  insertPostLikeSchema
+  insertPostLikeSchema,
+  insertPollSchema,
+  insertPollVoteSchema,
+  insertFeaturedEventSchema
 } from "@shared/schema";
 import { z } from "zod";
+
+// Admin middleware
+const isAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Failed to verify admin status" });
+  }
+};
+
+// Approved user middleware
+const isApprovedUser = async (req: any, res: any, next: any) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || user.status !== 'approved') {
+      return res.status(403).json({ message: "User approval required" });
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Error checking user approval:", error);
+    res.status(500).json({ message: "Failed to verify user status" });
+  }
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -28,8 +71,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Posts routes
-  app.get('/api/posts', async (req, res) => {
+  // Admin-only user management routes
+  app.get('/api/admin/pending-users', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const pendingUsers = await storage.getPendingUsers();
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error("Error fetching pending users:", error);
+      res.status(500).json({ message: "Failed to fetch pending users" });
+    }
+  });
+
+  app.post('/api/admin/approve-user/:userId', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      await storage.approveUser(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error approving user:", error);
+      res.status(500).json({ message: "Failed to approve user" });
+    }
+  });
+
+  app.post('/api/admin/reject-user/:userId', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      await storage.rejectUser(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error rejecting user:", error);
+      res.status(500).json({ message: "Failed to reject user" });
+    }
+  });
+
+  // Posts routes (viewable by approved users)
+  app.get('/api/posts', isAuthenticated, isApprovedUser, async (req, res) => {
     try {
       const posts = await storage.getPosts();
       res.json(posts);
@@ -39,7 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/posts', isAuthenticated, async (req: any, res) => {
+  // Admin-only post creation
+  app.post('/api/posts', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const postData = insertPostSchema.parse({ ...req.body, authorId: userId });
@@ -104,8 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Events routes
-  app.get('/api/events', async (req, res) => {
+  // Events routes (viewable by approved users)
+  app.get('/api/events', isAuthenticated, isApprovedUser, async (req, res) => {
     try {
       const events = await storage.getEvents();
       res.json(events);
@@ -115,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/events/:id', async (req, res) => {
+  app.get('/api/events/:id', isAuthenticated, isApprovedUser, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
       const event = await storage.getEvent(eventId);
@@ -129,7 +206,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/events', isAuthenticated, async (req: any, res) => {
+  // Admin-only event management
+  app.post('/api/events', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventData = insertEventSchema.parse({ ...req.body, organizerId: userId });
@@ -138,6 +216,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating event:", error);
       res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
+  app.put('/api/events/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const eventData = insertEventSchema.partial().parse(req.body);
+      const event = await storage.updateEvent(eventId, eventData);
+      res.json(event);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      res.status(500).json({ message: "Failed to update event" });
+    }
+  });
+
+  app.delete('/api/events/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      await storage.deleteEvent(eventId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      res.status(500).json({ message: "Failed to delete event" });
     }
   });
 
