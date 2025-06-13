@@ -171,16 +171,37 @@ export default function Home() {
                       className="flex transition-transform duration-500 ease-in-out"
                       style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                     >
-                      {(featuredEvents as any[]).map((featured: any) => (
-                        <div key={featured.id} className="w-full flex-shrink-0">
-                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                            <div className="flex items-start space-x-4">
-                              <div className="bg-blue-100 rounded-lg p-3 flex-shrink-0">
-                                <i className="fas fa-calendar text-blue-600 text-xl"></i>
+                      {(featuredEvents as any[]).map((featured: any, index: number) => {
+                        // Create dummy background images for variety
+                        const eventImages = [
+                          'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop&crop=center',
+                          'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=200&fit=crop&crop=center',
+                          'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&h=200&fit=crop&crop=center',
+                          'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&h=200&fit=crop&crop=center'
+                        ];
+                        const eventImage = eventImages[index % eventImages.length];
+                        
+                        return (
+                          <div key={featured.id} className="w-full flex-shrink-0">
+                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                              <div 
+                                className="h-48 bg-cover bg-center relative"
+                                style={{ 
+                                  backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${eventImage})`
+                                }}
+                              >
+                                <div className="absolute inset-0 flex items-end">
+                                  <div className="p-4 text-white">
+                                    <h4 className="font-semibold text-xl mb-1">{featured.event.title}</h4>
+                                    <div className="flex items-center text-sm opacity-90">
+                                      <i className="fas fa-calendar mr-2"></i>
+                                      {featured.event.date} • {featured.event.time}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-gray-900 text-lg mb-2">{featured.event.title}</h4>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{featured.event.description}</p>
+                              <div className="p-4">
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{featured.event.description}</p>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                   <div className="text-gray-500">
                                     <i className="fas fa-map-marker-alt mr-2"></i>
@@ -190,20 +211,12 @@ export default function Home() {
                                     <i className="fas fa-users mr-2"></i>
                                     {featured.event.attendees} attending
                                   </div>
-                                  <div className="text-gray-500">
-                                    <i className="fas fa-clock mr-2"></i>
-                                    {featured.event.time}
-                                  </div>
-                                  <div className="text-gray-500">
-                                    <i className="fas fa-calendar-day mr-2"></i>
-                                    {featured.event.date}
-                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                   
