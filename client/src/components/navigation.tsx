@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import uctScfLogo from "@assets/image_1749854348976.png";
 
 export default function Navigation() {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 flex items-center">
               <img 
-                src="/attached_assets/image_1749854348976.png"
+                src={uctScfLogo}
                 alt="UCT Student Christian Fellowship Logo" 
                 className="h-10 w-10 rounded-full"
               />

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import uctScfLogo from "@assets/image_1749854348976.png";
 
 export default function Landing() {
   return (
@@ -9,7 +10,7 @@ export default function Landing() {
           <div className="text-center space-y-6">
             <div className="flex justify-center">
               <img 
-                src="/attached_assets/image_1749854348976.png"
+                src={uctScfLogo}
                 alt="UCT Student Christian Fellowship Logo" 
                 className="h-20 w-20 rounded-full"
               />
