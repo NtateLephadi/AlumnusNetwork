@@ -192,12 +192,8 @@ export default function Home() {
                               >
                                 <div className="absolute inset-0 p-6 flex flex-col justify-between text-white">
                                   <div className="flex justify-between items-start">
-                                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                                      <span className="text-sm font-medium">Featured Event</span>
-                                    </div>
-                                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                                      <span className="text-sm">{featured.event.attendees} attending</span>
-                                    </div>
+                                    <span className="text-sm font-medium">Featured Event</span>
+                                    <span className="text-sm">{featured.event.attendees} attending</span>
                                   </div>
                                   
                                   <div>
@@ -205,24 +201,15 @@ export default function Home() {
                                     <p className="text-white/90 text-sm mb-4 line-clamp-2">{featured.event.description}</p>
                                     
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div className="flex items-center">
-                                        <div className="bg-white/20 rounded-full p-2 mr-3">
-                                          <i className="fas fa-map-marker-alt"></i>
-                                        </div>
+                                      <div>
                                         <span>{featured.event.venue}</span>
                                       </div>
-                                      <div className="flex items-center">
-                                        <div className="bg-white/20 rounded-full p-2 mr-3">
-                                          <i className="fas fa-calendar"></i>
-                                        </div>
+                                      <div>
                                         <span>{featured.event.date}</span>
                                       </div>
                                     </div>
                                     
-                                    <div className="flex items-center mt-3">
-                                      <div className="bg-white/20 rounded-full p-2 mr-3">
-                                        <i className="fas fa-clock"></i>
-                                      </div>
+                                    <div className="mt-3">
                                       <span>{featured.event.time}</span>
                                     </div>
                                   </div>
