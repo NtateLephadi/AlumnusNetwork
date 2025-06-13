@@ -68,9 +68,7 @@ export default function AdminUsers() {
 
   const rejectMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest(`/api/admin/reject-user/${userId}`, {
-        method: "POST",
-      });
+      await apiRequest(`/api/admin/reject-user/${userId}`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pending-users"] });
@@ -101,9 +99,7 @@ export default function AdminUsers() {
 
   const promoteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest(`/api/admin/promote-user/${userId}`, {
-        method: "POST",
-      });
+      await apiRequest(`/api/admin/promote-user/${userId}`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pending-users"] });
