@@ -179,7 +179,7 @@ export default function Home() {
             )}
 
             {/* Featured Events Carousel */}
-            {featuredEvents.length > 0 && (
+            {(featuredEvents as any[]).length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Featured Events</h3>
                 <div className="space-y-4">
@@ -191,7 +191,7 @@ export default function Home() {
             )}
 
             {/* Recent Polls */}
-            {polls.length > 0 && (
+            {(polls as any[]).length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Community Polls</h3>
                 <div className="space-y-4">
@@ -233,11 +233,11 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {posts.map((post: any) => (
+                {(posts as any[]).map((post: any) => (
                   <PostCard key={post.id} post={post} />
                 ))}
                 
-                {events.map((event: any) => (
+                {(events as any[]).map((event: any) => (
                   <EventCard key={event.id} event={event} />
                 ))}
               </>
