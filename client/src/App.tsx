@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import AdminUsers from "@/pages/admin-users";
 import Profile from "@/pages/profile";
+import Events from "@/pages/events";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -23,6 +24,7 @@ function Router() {
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/profile" component={Profile} />
           <Route path="/profile/:userId" component={Profile} />
+          <Route path="/events" component={Events} />
         </>
       )}
       <Route component={NotFound} />
