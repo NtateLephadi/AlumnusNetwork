@@ -97,24 +97,26 @@ export default function EventCard({ event }: EventCardProps) {
               </Badge>
             )}
             <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
-            <div className="flex items-center space-x-4 text-gray-600 text-sm flex-wrap gap-2">
+            <div className="flex items-center space-x-4 text-gray-600 text-sm flex-wrap gap-2 mb-4">
               <div className="flex items-center space-x-1">
-                <span>{format(new Date(event.date), 'MMM d, yyyy')}</span>
+                <span>On {format(new Date(event.date), 'MMM d, yyyy')}</span>
                 <i className="fas fa-calendar"></i>
               </div>
               <div className="flex items-center space-x-1">
-                <span>{format(new Date(`2000-01-01T${event.time}`), 'h:mm a')}</span>
+                <span>At {format(new Date(`2000-01-01T${event.time}`), 'h:mm a')}</span>
                 <i className="fas fa-clock"></i>
               </div>
               <div className="flex items-center space-x-1">
-                <span>{event.venue}</span>
+                <span>Located at {event.venue}</span>
                 <i className="fas fa-map-marker-alt"></i>
               </div>
             </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <p className="text-gray-700 leading-relaxed">{event.description}</p>
+            </div>
           </div>
         </div>
-        
-        <p className="text-gray-700 mb-4">{event.description}</p>
         
         {event.speakers && (
           <div className="mb-4">
