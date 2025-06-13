@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -10,13 +10,13 @@ import MobileNav from "@/components/mobile-nav";
 import { CreatePostModal } from "@/components/create-post-modal";
 import { CreateEventModal } from "@/components/create-event-modal";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 
 export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -107,6 +107,17 @@ export default function Home() {
     enabled: isAuthenticated && isApproved,
   });
 
+  // Auto-rotate carousel
+  useEffect(() => {
+    if (featuredEvents && Array.isArray(featuredEvents) && featuredEvents.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentEventIndex((prev) => (prev + 1) % featuredEvents.length);
+      }, 4000); // Rotate every 4 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [featuredEvents]);
+
   if (isLoading || !isAuthenticated || !isApproved) {
     return null;
   }
@@ -138,34 +149,64 @@ export default function Home() {
               </div>
 
               {/* Featured Events Carousel */}
-              {featuredEvents.length > 0 && (
+              {featuredEvents && Array.isArray(featuredEvents) && featuredEvents.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-heading font-semibold text-gray-900">Featured Events</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(featuredEvents as any[]).slice(0, 2).map((featured: any) => (
-                      <div key={featured.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start space-x-3">
-                          <div className="bg-blue-100 rounded-lg p-2 flex-shrink-0">
-                            <i className="fas fa-calendar text-blue-600 text-lg"></i>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 truncate">{featured.event.title}</h4>
-                            <p className="text-gray-600 text-sm mt-1 line-clamp-2">{featured.event.description}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <div className="text-gray-500 text-xs">
-                                <i className="fas fa-map-marker-alt mr-1"></i>
-                                {featured.event.venue}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-heading font-semibold text-gray-900">Featured Events</h3>
+                    <div className="flex items-center space-x-1">
+                      {(featuredEvents as any[]).map((_: any, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentEventIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentEventIndex ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="relative overflow-hidden">
+                    <div 
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
+                    >
+                      {(featuredEvents as any[]).map((featured: any) => (
+                        <div key={featured.id} className="w-full flex-shrink-0">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                            <div className="flex items-start space-x-4">
+                              <div className="bg-blue-100 rounded-lg p-3 flex-shrink-0">
+                                <i className="fas fa-calendar text-blue-600 text-xl"></i>
                               </div>
-                              <div className="text-gray-500 text-xs">
-                                <i className="fas fa-users mr-1"></i>
-                                {featured.event.attendees} attending
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 text-lg mb-2">{featured.event.title}</h4>
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{featured.event.description}</p>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div className="text-gray-500">
+                                    <i className="fas fa-map-marker-alt mr-2"></i>
+                                    {featured.event.venue}
+                                  </div>
+                                  <div className="text-gray-500">
+                                    <i className="fas fa-users mr-2"></i>
+                                    {featured.event.attendees} attending
+                                  </div>
+                                  <div className="text-gray-500">
+                                    <i className="fas fa-clock mr-2"></i>
+                                    {featured.event.time}
+                                  </div>
+                                  <div className="text-gray-500">
+                                    <i className="fas fa-calendar-day mr-2"></i>
+                                    {featured.event.date}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
+                  
                   <div className="text-center">
                     <a 
                       href="/events" 
