@@ -143,20 +143,20 @@ export default function Home() {
                   <h3 className="text-lg font-heading font-semibold text-gray-900">Featured Events</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(featuredEvents as any[]).slice(0, 2).map((featured: any) => (
-                      <div key={featured.id} className="bg-gradient-to-r from-uct-blue to-blue-600 rounded-lg p-4 text-white">
+                      <div key={featured.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                         <div className="flex items-start space-x-3">
-                          <div className="bg-white/20 rounded-lg p-2 flex-shrink-0">
-                            <i className="fas fa-calendar text-white text-lg"></i>
+                          <div className="bg-blue-100 rounded-lg p-2 flex-shrink-0">
+                            <i className="fas fa-calendar text-blue-600 text-lg"></i>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white truncate">{featured.event.title}</h4>
-                            <p className="text-blue-100 text-sm mt-1 line-clamp-2">{featured.event.description}</p>
+                            <h4 className="font-medium text-gray-900 truncate">{featured.event.title}</h4>
+                            <p className="text-gray-600 text-sm mt-1 line-clamp-2">{featured.event.description}</p>
                             <div className="flex items-center justify-between mt-3">
-                              <div className="text-blue-200 text-xs">
+                              <div className="text-gray-500 text-xs">
                                 <i className="fas fa-map-marker-alt mr-1"></i>
                                 {featured.event.venue}
                               </div>
-                              <div className="text-blue-200 text-xs">
+                              <div className="text-gray-500 text-xs">
                                 <i className="fas fa-users mr-1"></i>
                                 {featured.event.attendees} attending
                               </div>
@@ -169,7 +169,7 @@ export default function Home() {
                   <div className="text-center">
                     <a 
                       href="/events" 
-                      className="inline-flex items-center text-uct-blue hover:text-blue-700 font-medium text-sm"
+                      className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
                     >
                       View all events <i className="fas fa-arrow-right ml-2"></i>
                     </a>
