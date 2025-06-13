@@ -29,11 +29,13 @@
   /* UCT SCF Brand Colors - matching official website */
   --uct-blue: hsl(214, 100%, 27%);
   --uct-red: hsl(0, 73%, 41%);
-  --uct-gold: hsl(38, 92%, 50%);
-  --uct-navy: hsl(214, 100%, 15%);
+  --uct-gold: hsl(45, 100%, 50%);
+  --uct-navy: hsl(224, 82%, 29%);
   --uct-light-blue: hsl(214, 100%, 85%);
   --uct-gray: hsl(220, 13%, 91%);
   --uct-dark-gray: hsl(220, 9%, 46%);
+  --uct-gold-light: hsl(45, 100%, 85%);
+  --uct-navy-dark: hsl(224, 82%, 15%);
 }
 
 /* Base font styling - Roboto for all text */

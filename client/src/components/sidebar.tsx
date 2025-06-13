@@ -40,12 +40,15 @@ export default function Sidebar() {
     <div className="space-y-6">
       
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+      <Card className="bg-gradient-to-br from-uct-gold-light to-white border-uct-gold">
+        <CardHeader className="bg-uct-navy text-white rounded-t-lg">
+          <CardTitle className="flex items-center">
+            <i className="fas fa-bolt text-uct-gold mr-2"></i>
+            Quick Actions
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <Button className="w-full bg-uct-blue hover:bg-blue-700 text-white">
+        <CardContent className="space-y-3 pt-6">
+          <Button className="w-full bg-uct-gold hover:bg-yellow-500 text-uct-navy font-medium">
             <i className="fas fa-heart mr-2"></i>
             Make a Donation
           </Button>
@@ -61,10 +64,10 @@ export default function Sidebar() {
       </Card>
 
       {/* Donation Info */}
-      <Card>
-        <CardHeader>
+      <Card className="border-uct-navy">
+        <CardHeader className="bg-gradient-to-r from-uct-navy to-uct-blue text-white rounded-t-lg">
           <CardTitle className="flex items-center">
-            <i className="fas fa-university text-uct-blue mr-2"></i>
+            <i className="fas fa-university text-uct-gold mr-2"></i>
             Donation Details
           </CardTitle>
         </CardHeader>
