@@ -49,6 +49,11 @@ export interface IStorage {
   promoteToAdmin(userId: string): Promise<void>;
   removeAdminStatus(userId: string): Promise<void>;
   
+  // Profile management
+  getUserProfile(userId: string): Promise<User | undefined>;
+  updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
+  exitCommunity(userId: string, userName: string, reason?: string): Promise<void>;
+  
   // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;
   createPost(post: InsertPost): Promise<Post>;
@@ -159,6 +164,43 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(users)
       .set({ isAdmin: false, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  // Profile management
+  async getUserProfile(userId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    return user;
+  }
+
+  async updateUserProfile(userId: string, profileData: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...profileData, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async exitCommunity(userId: string, userName: string, reason?: string): Promise<void> {
+    // Record the exit
+    await db.insert(communityExits).values({
+      userId,
+      userName,
+      reason: reason || null,
+    });
+
+    // Create a notification post about the exit
+    await db.insert(posts).values({
+      authorId: userId,
+      content: `${userName} has left the UCT SCF Alumni community. We wish them well in their future endeavors.`,
+      type: 'announcement',
+    });
+
+    // Mark user as inactive or remove from community
+    await db
+      .update(users)
+      .set({ status: 'rejected', updatedAt: new Date() })
       .where(eq(users.id, userId));
   }
 

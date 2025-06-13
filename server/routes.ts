@@ -134,6 +134,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile management routes
+  app.get('/api/users/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await storage.getUserProfile(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.put('/api/users/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      // Only allow users to update their own profile
+      if (userId !== currentUserId) {
+        return res.status(403).json({ message: "Unauthorized to update this profile" });
+      }
+      
+      const user = await storage.updateUserProfile(userId, req.body);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
+  app.post('/api/users/exit-community', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const userName = user?.firstName && user?.lastName 
+        ? `${user.firstName} ${user.lastName}`
+        : user?.email || 'A community member';
+      
+      await storage.exitCommunity(userId, userName, req.body.reason);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error exiting community:", error);
+      res.status(500).json({ message: "Failed to exit community" });
+    }
+  });
+
   // Posts routes (viewable by approved users)
   app.get('/api/posts', isAuthenticated, isApprovedUser, async (req, res) => {
     try {
