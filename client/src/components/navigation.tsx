@@ -10,10 +10,12 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 flex items-center">
-              <div className="w-10 h-10 bg-uct-blue rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">UCT</span>
-              </div>
-              <span className="ml-3 text-xl font-semibold text-gray-900 hidden sm:block">SCF Alumni</span>
+              <img 
+                src="/attached_assets/uct-scf-40th-anniversary-logo_1749853954253"
+                alt="UCT SCF 40th Anniversary Logo" 
+                className="h-10 w-auto"
+              />
+              <span className="ml-3 text-xl font-heading font-semibold text-gray-900 hidden sm:block">SCF Alumni</span>
             </div>
           </div>
           
@@ -34,9 +36,9 @@ export default function Navigation() {
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-uct-red rounded-full"></span>
             </button>
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              {user?.profileImageUrl ? (
+              {(user as any)?.profileImageUrl ? (
                 <img 
-                  src={user.profileImageUrl} 
+                  src={(user as any).profileImageUrl} 
                   alt="Profile" 
                   className="w-8 h-8 rounded-full object-cover"
                 />

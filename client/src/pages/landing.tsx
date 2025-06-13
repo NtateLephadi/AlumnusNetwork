@@ -8,16 +8,21 @@ export default function Landing() {
         <CardContent className="pt-6">
           <div className="text-center space-y-6">
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-uct-blue rounded-2xl flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">UCT</span>
-              </div>
+              <img 
+                src="/attached_assets/uct-scf-40th-anniversary-logo_1749853954253"
+                alt="UCT SCF 40th Anniversary Logo" 
+                className="h-20 w-auto"
+              />
             </div>
             
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
                 UCT SCF Alumni Hub
               </h1>
-              <p className="text-gray-600">
+              <p className="text-base font-body text-uct-gold font-semibold mb-1">
+                40th Anniversary Celebration
+              </p>
+              <p className="text-gray-600 font-body">
                 Connect, share, and support your UCT SCF community
               </p>
             </div>
