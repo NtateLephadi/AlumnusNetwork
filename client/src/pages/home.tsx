@@ -122,20 +122,18 @@ export default function Home() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-uct-blue to-blue-700 rounded-xl p-6 text-white">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold mb-2">
+                  <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
                     Welcome back, {(user as any)?.firstName || 'Alumni'}!
                   </h1>
-                  <p className="text-blue-100">Stay connected with your UCT SCF community</p>
+                  <p className="text-gray-600">Stay connected with your UCT SCF community</p>
                 </div>
                 <div className="hidden sm:block">
-                  <img 
-                    src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=150" 
-                    alt="Alumni networking event" 
-                    className="rounded-lg w-32 h-24 object-cover" 
-                  />
+                  <div className="w-32 h-24 bg-gradient-to-br from-uct-blue to-blue-700 rounded-lg flex items-center justify-center">
+                    <i className="fas fa-users text-white text-2xl"></i>
+                  </div>
                 </div>
               </div>
             </div>
