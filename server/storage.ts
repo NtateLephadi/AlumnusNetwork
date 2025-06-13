@@ -10,6 +10,7 @@ import {
   pollOptions,
   pollVotes,
   featuredEvents,
+  communityExits,
   type User,
   type UpsertUser,
   type Post,

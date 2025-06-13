@@ -36,7 +36,10 @@ export default function Navigation() {
               <i className="fas fa-bell text-lg"></i>
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-uct-red rounded-full"></span>
             </button>
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            <a 
+              href="/profile" 
+              className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-uct-blue transition-all"
+            >
               {(user as any)?.profileImageUrl ? (
                 <img 
                   src={(user as any).profileImageUrl} 
@@ -46,7 +49,7 @@ export default function Navigation() {
               ) : (
                 <i className="fas fa-user text-gray-600"></i>
               )}
-            </div>
+            </a>
             <Button
               variant="ghost"
               size="sm"

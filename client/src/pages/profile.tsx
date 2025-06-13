@@ -14,11 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-interface ProfileProps {
-  userId?: string;
-}
-
-export default function Profile({ userId }: ProfileProps) {
+export default function Profile(props: any) {
+  const userId = props.params?.userId;
   const { user: currentUser, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
