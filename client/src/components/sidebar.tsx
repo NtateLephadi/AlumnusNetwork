@@ -61,10 +61,10 @@ export default function Sidebar() {
       </Card>
 
       {/* Donation Info */}
-      <Card className="border-uct-navy">
-        <CardHeader className="bg-gradient-to-r from-uct-navy to-uct-blue text-white rounded-t-lg">
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center">
-            <i className="fas fa-university text-uct-gold mr-2"></i>
+            <i className="fas fa-university text-uct-blue mr-2"></i>
             Donation Details
           </CardTitle>
         </CardHeader>
