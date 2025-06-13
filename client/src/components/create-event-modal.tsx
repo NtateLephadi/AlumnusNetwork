@@ -1,0 +1,211 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from "@/lib/authUtils";
+
+interface CreateEventModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    venue: "",
+    date: "",
+    time: "",
+    speakers: "",
+    donationGoal: "",
+  });
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createEventMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const eventData = {
+        ...data,
+        donationGoal: data.donationGoal ? parseFloat(data.donationGoal) : null,
+      };
+      await apiRequest("POST", "/api/events", eventData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Event created successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setFormData({
+        title: "",
+        description: "",
+        venue: "",
+        date: "",
+        time: "",
+        speakers: "",
+        donationGoal: "",
+      });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const requiredFields = ['title', 'description', 'venue', 'date', 'time'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData].trim());
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createEventMutation.mutate(formData);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create New Event</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="title">Event Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={handleInputChange('title')}
+              placeholder="Enter event title"
+              required
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="date">Date *</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={handleInputChange('date')}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="time">Time *</Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={handleInputChange('time')}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="venue">Venue *</Label>
+            <Input
+              id="venue"
+              value={formData.venue}
+              onChange={handleInputChange('venue')}
+              placeholder="Event location"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={handleInputChange('description')}
+              placeholder="Describe your event..."
+              rows={4}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="speakers">Speakers (Optional)</Label>
+            <Input
+              id="speakers"
+              value={formData.speakers}
+              onChange={handleInputChange('speakers')}
+              placeholder="List speakers or panelists"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="donationGoal">Donation Goal (Optional)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-gray-500">R</span>
+              <Input
+                id="donationGoal"
+                type="number"
+                value={formData.donationGoal}
+                onChange={handleInputChange('donationGoal')}
+                placeholder="0"
+                className="pl-8"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={createEventMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-uct-blue hover:bg-blue-700"
+              disabled={createEventMutation.isPending}
+            >
+              {createEventMutation.isPending ? "Creating..." : "Create Event"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

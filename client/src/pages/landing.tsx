@@ -1,0 +1,58 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function Landing() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-uct-blue to-blue-700 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-uct-blue rounded-2xl flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">UCT</span>
+              </div>
+            </div>
+            
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                UCT SCF Alumni Hub
+              </h1>
+              <p className="text-gray-600">
+                Connect, share, and support your UCT SCF community
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-bold text-uct-blue">1,200+</div>
+                  <div className="text-xs text-gray-600">Alumni</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-uct-gold">R250K+</div>
+                  <div className="text-xs text-gray-600">Raised</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-uct-red">50+</div>
+                  <div className="text-xs text-gray-600">Events</div>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full bg-uct-blue hover:bg-blue-700"
+                onClick={() => window.location.href = '/api/login'}
+              >
+                Sign In to Continue
+              </Button>
+            </div>
+
+            <div className="text-xs text-gray-500">
+              Join our community of UCT SCF alumni to stay connected, 
+              share updates, and support meaningful initiatives.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
