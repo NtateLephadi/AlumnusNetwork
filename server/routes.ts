@@ -312,6 +312,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Featured events routes (carousel)
+  app.get('/api/featured-events', isAuthenticated, isApprovedUser, async (req, res) => {
+    try {
+      const featuredEvents = await storage.getFeaturedEvents();
+      res.json(featuredEvents);
+    } catch (error) {
+      console.error("Error fetching featured events:", error);
+      res.status(500).json({ message: "Failed to fetch featured events" });
+    }
+  });
+
+  app.post('/api/admin/featured-events', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const featuredEventData = insertFeaturedEventSchema.parse(req.body);
+      const featuredEvent = await storage.addFeaturedEvent(featuredEventData);
+      res.json(featuredEvent);
+    } catch (error) {
+      console.error("Error adding featured event:", error);
+      res.status(500).json({ message: "Failed to add featured event" });
+    }
+  });
+
+  app.delete('/api/admin/featured-events/:eventId', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      await storage.removeFeaturedEvent(eventId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing featured event:", error);
+      res.status(500).json({ message: "Failed to remove featured event" });
+    }
+  });
+
+  // Polls routes
+  app.get('/api/polls', isAuthenticated, isApprovedUser, async (req, res) => {
+    try {
+      const polls = await storage.getPolls();
+      res.json(polls);
+    } catch (error) {
+      console.error("Error fetching polls:", error);
+      res.status(500).json({ message: "Failed to fetch polls" });
+    }
+  });
+
+  app.get('/api/polls/:id', isAuthenticated, isApprovedUser, async (req, res) => {
+    try {
+      const pollId = parseInt(req.params.id);
+      const poll = await storage.getPoll(pollId);
+      if (!poll) {
+        return res.status(404).json({ message: "Poll not found" });
+      }
+      res.json(poll);
+    } catch (error) {
+      console.error("Error fetching poll:", error);
+      res.status(500).json({ message: "Failed to fetch poll" });
+    }
+  });
+
+  // Admin-only poll creation
+  app.post('/api/admin/polls', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { options, ...pollData } = req.body;
+      const pollSchema = insertPollSchema.parse({ ...pollData, createdById: userId });
+      const poll = await storage.createPoll(pollSchema, options);
+      res.json(poll);
+    } catch (error) {
+      console.error("Error creating poll:", error);
+      res.status(500).json({ message: "Failed to create poll" });
+    }
+  });
+
+  // Poll voting (approved users only)
+  app.post('/api/polls/:id/vote', isAuthenticated, isApprovedUser, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const pollId = parseInt(req.params.id);
+      const { optionId } = req.body;
+      
+      const voteData = insertPollVoteSchema.parse({ pollId, optionId, userId });
+      await storage.votePoll(voteData);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error voting on poll:", error);
+      res.status(500).json({ message: "Failed to vote on poll" });
+    }
+  });
+
+  app.get('/api/polls/:id/my-vote', isAuthenticated, isApprovedUser, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const pollId = parseInt(req.params.id);
+      const vote = await storage.getUserPollVote(pollId, userId);
+      res.json(vote);
+    } catch (error) {
+      console.error("Error fetching user vote:", error);
+      res.status(500).json({ message: "Failed to fetch user vote" });
+    }
+  });
+
   // Stats route
   app.get('/api/stats', async (req, res) => {
     try {

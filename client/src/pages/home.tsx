@@ -33,17 +33,81 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
+  // Check user approval status
+  const userStatus = (user as any)?.status;
+  const isAdmin = (user as any)?.isAdmin;
+  const isApproved = userStatus === 'approved';
+  const isPending = userStatus === 'pending';
+  const isRejected = userStatus === 'rejected';
+
+  // Show different content based on user status
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-clock text-yellow-600 text-2xl"></i>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Under Review</h2>
+          <p className="text-gray-600 mb-6">
+            Your application to join the UCT SCF Alumni community is being reviewed by our admin team. 
+            You'll receive access once approved.
+          </p>
+          <button 
+            onClick={() => window.location.href = '/api/logout'}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-times text-red-600 text-2xl"></i>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Not Approved</h2>
+          <p className="text-gray-600 mb-6">
+            Unfortunately, your application to join the UCT SCF Alumni community was not approved at this time.
+            Please contact the admin team for more information.
+          </p>
+          <button 
+            onClick={() => window.location.href = '/api/logout'}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const { data: posts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ["/api/posts"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isApproved,
   });
 
   const { data: events = [], isLoading: loadingEvents } = useQuery({
     queryKey: ["/api/events"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isApproved,
   });
 
-  if (isLoading || !isAuthenticated) {
+  const { data: featuredEvents = [] } = useQuery({
+    queryKey: ["/api/featured-events"],
+    enabled: isAuthenticated && isApproved,
+  });
+
+  const { data: polls = [] } = useQuery({
+    queryKey: ["/api/polls"],
+    enabled: isAuthenticated && isApproved,
+  });
+
+  if (isLoading || !isAuthenticated || !isApproved) {
     return null;
   }
 
@@ -62,7 +126,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-2xl font-bold mb-2">
-                    Welcome back, {user?.firstName || 'Alumni'}!
+                    Welcome back, {(user as any)?.firstName || 'Alumni'}!
                   </h1>
                   <p className="text-blue-100">Stay connected with your UCT SCF community</p>
                 </div>
@@ -76,41 +140,78 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Create Post Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  {user?.profileImageUrl ? (
-                    <img 
-                      src={user.profileImageUrl} 
-                      alt="Profile" 
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <i className="fas fa-user text-gray-600"></i>
-                  )}
+            {/* Admin Create Post Section */}
+            {isAdmin && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                    {(user as any)?.profileImageUrl ? (
+                      <img 
+                        src={(user as any).profileImageUrl} 
+                        alt="Profile" 
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <i className="fas fa-user text-gray-600"></i>
+                    )}
+                  </div>
+                  <button 
+                    className="flex-1 text-left text-gray-500 bg-gray-100 rounded-full py-3 px-4 hover:bg-gray-200 transition-colors"
+                    onClick={() => setShowCreatePost(true)}
+                  >
+                    Share an announcement with the community...
+                  </button>
                 </div>
-                <button 
-                  className="flex-1 text-left text-gray-500 bg-gray-100 rounded-full py-3 px-4 hover:bg-gray-200 transition-colors"
-                  onClick={() => setShowCreatePost(true)}
-                >
-                  Share an announcement with the community...
-                </button>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <button 
+                    className="flex items-center space-x-2 text-gray-600 hover:text-uct-blue transition-colors"
+                    onClick={() => setShowCreateEvent(true)}
+                  >
+                    <i className="fas fa-calendar-plus"></i>
+                    <span>Create Event</span>
+                  </button>
+                  <button className="flex items-center space-x-2 text-gray-600 hover:text-uct-red transition-colors">
+                    <i className="fas fa-heart"></i>
+                    <span>Make Donation</span>
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <button 
-                  className="flex items-center space-x-2 text-gray-600 hover:text-uct-blue transition-colors"
-                  onClick={() => setShowCreateEvent(true)}
-                >
-                  <i className="fas fa-calendar-plus"></i>
-                  <span>Create Event</span>
-                </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-uct-red transition-colors">
-                  <i className="fas fa-heart"></i>
-                  <span>Make Donation</span>
-                </button>
+            )}
+
+            {/* Featured Events Carousel */}
+            {featuredEvents.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Featured Events</h3>
+                <div className="space-y-4">
+                  {(featuredEvents as any[]).slice(0, 2).map((featuredEvent: any) => (
+                    <EventCard key={featuredEvent.id} event={featuredEvent.event} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Recent Polls */}
+            {polls.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Community Polls</h3>
+                <div className="space-y-4">
+                  {(polls as any[]).slice(0, 2).map((poll: any) => (
+                    <div key={poll.id} className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">{poll.title}</h4>
+                      <p className="text-gray-600 text-sm mb-3">{poll.description}</p>
+                      <div className="space-y-2">
+                        {poll.options.map((option: any) => (
+                          <div key={option.id} className="flex items-center justify-between">
+                            <span className="text-sm">{option.optionText}</span>
+                            <span className="text-sm text-gray-500">{option.voteCount} votes</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Feed Posts */}
             {loadingPosts ? (
