@@ -11,9 +11,9 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 flex items-center">
               <img 
-                src="/attached_assets/uct-scf-40th-anniversary-logo_1749853954253"
-                alt="UCT SCF 40th Anniversary Logo" 
-                className="h-10 w-auto"
+                src="/attached_assets/image_1749854348976.png"
+                alt="UCT Student Christian Fellowship Logo" 
+                className="h-10 w-10 rounded-full"
               />
               <span className="ml-3 text-xl font-heading font-semibold text-gray-900 hidden sm:block">SCF Alumni</span>
             </div>

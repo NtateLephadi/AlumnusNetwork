@@ -9,9 +9,9 @@ export default function Landing() {
           <div className="text-center space-y-6">
             <div className="flex justify-center">
               <img 
-                src="/attached_assets/uct-scf-40th-anniversary-logo_1749853954253"
-                alt="UCT SCF 40th Anniversary Logo" 
-                className="h-20 w-auto"
+                src="/attached_assets/image_1749854348976.png"
+                alt="UCT Student Christian Fellowship Logo" 
+                className="h-20 w-20 rounded-full"
               />
             </div>
             
@@ -19,8 +19,8 @@ export default function Landing() {
               <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
                 UCT SCF Alumni Hub
               </h1>
-              <p className="text-base font-body text-uct-gold font-semibold mb-1">
-                40th Anniversary Celebration
+              <p className="text-base font-body text-uct-blue font-semibold mb-1">
+                Student Christian Fellowship
               </p>
               <p className="text-gray-600 font-body">
                 Connect, share, and support your UCT SCF community
