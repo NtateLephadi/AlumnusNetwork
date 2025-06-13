@@ -104,6 +104,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/admin/promote-user/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      await storage.promoteToAdmin(req.params.userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error promoting user:", error);
+      res.status(500).json({ message: "Failed to promote user" });
+    }
+  });
+
+  app.post('/api/admin/remove-admin/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      await storage.removeAdminStatus(req.params.userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing admin status:", error);
+      res.status(500).json({ message: "Failed to remove admin status" });
+    }
+  });
+
   // Posts routes (viewable by approved users)
   app.get('/api/posts', isAuthenticated, isApprovedUser, async (req, res) => {
     try {

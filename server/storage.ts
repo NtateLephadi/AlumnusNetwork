@@ -148,6 +148,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async promoteToAdmin(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ isAdmin: true, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async removeAdminStatus(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ isAdmin: false, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
   // Post operations
   async getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]> {
     const postsWithDetails = await db
