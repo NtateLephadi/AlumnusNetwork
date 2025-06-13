@@ -34,6 +34,8 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  isAdmin: boolean("is_admin").default(false),
+  status: varchar("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -101,6 +103,43 @@ export const postComments = pgTable("post_comments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Polls table
+export const polls = pgTable("polls", {
+  id: serial("id").primaryKey(),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+// Poll options table
+export const pollOptions = pgTable("poll_options", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull().references(() => polls.id),
+  optionText: varchar("option_text").notNull(),
+  voteCount: integer("vote_count").default(0),
+});
+
+// Poll votes table
+export const pollVotes = pgTable("poll_votes", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull().references(() => polls.id),
+  optionId: integer("option_id").notNull().references(() => pollOptions.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Featured events table (for carousel)
+export const featuredEvents = pgTable("featured_events", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => events.id),
+  order: integer("order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -109,6 +148,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   donations: many(donations),
   postLikes: many(postLikes),
   postComments: many(postComments),
+  polls: many(polls),
+  pollVotes: many(pollVotes),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -141,6 +182,27 @@ export const postLikesRelations = relations(postLikes, ({ one }) => ({
 export const postCommentsRelations = relations(postComments, ({ one }) => ({
   post: one(posts, { fields: [postComments.postId], references: [posts.id] }),
   author: one(users, { fields: [postComments.authorId], references: [users.id] }),
+}));
+
+export const pollsRelations = relations(polls, ({ one, many }) => ({
+  createdBy: one(users, { fields: [polls.createdById], references: [users.id] }),
+  options: many(pollOptions),
+  votes: many(pollVotes),
+}));
+
+export const pollOptionsRelations = relations(pollOptions, ({ one, many }) => ({
+  poll: one(polls, { fields: [pollOptions.pollId], references: [polls.id] }),
+  votes: many(pollVotes),
+}));
+
+export const pollVotesRelations = relations(pollVotes, ({ one }) => ({
+  poll: one(polls, { fields: [pollVotes.pollId], references: [polls.id] }),
+  option: one(pollOptions, { fields: [pollVotes.optionId], references: [pollOptions.id] }),
+  user: one(users, { fields: [pollVotes.userId], references: [users.id] }),
+}));
+
+export const featuredEventsRelations = relations(featuredEvents, ({ one }) => ({
+  event: one(events, { fields: [featuredEvents.eventId], references: [events.id] }),
 }));
 
 // Insert schemas
@@ -176,6 +238,26 @@ export const insertPostCommentSchema = createInsertSchema(postComments).omit({
   createdAt: true,
 });
 
+export const insertPollSchema = createInsertSchema(polls).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPollOptionSchema = createInsertSchema(pollOptions).omit({
+  id: true,
+  voteCount: true,
+});
+
+export const insertPollVoteSchema = createInsertSchema(pollVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFeaturedEventSchema = createInsertSchema(featuredEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -185,6 +267,10 @@ export type Rsvp = typeof rsvps.$inferSelect;
 export type Donation = typeof donations.$inferSelect;
 export type PostLike = typeof postLikes.$inferSelect;
 export type PostComment = typeof postComments.$inferSelect;
+export type Poll = typeof polls.$inferSelect;
+export type PollOption = typeof pollOptions.$inferSelect;
+export type PollVote = typeof pollVotes.$inferSelect;
+export type FeaturedEvent = typeof featuredEvents.$inferSelect;
 
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -192,3 +278,7 @@ export type InsertRsvp = z.infer<typeof insertRsvpSchema>;
 export type InsertDonation = z.infer<typeof insertDonationSchema>;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
 export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
+export type InsertPoll = z.infer<typeof insertPollSchema>;
+export type InsertPollOption = z.infer<typeof insertPollOptionSchema>;
+export type InsertPollVote = z.infer<typeof insertPollVoteSchema>;
+export type InsertFeaturedEvent = z.infer<typeof insertFeaturedEventSchema>;

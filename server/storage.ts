@@ -6,6 +6,10 @@ import {
   donations,
   postLikes,
   postComments,
+  polls,
+  pollOptions,
+  pollVotes,
+  featuredEvents,
   type User,
   type UpsertUser,
   type Post,
@@ -14,12 +18,20 @@ import {
   type Donation,
   type PostLike,
   type PostComment,
+  type Poll,
+  type PollOption,
+  type PollVote,
+  type FeaturedEvent,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
   type InsertDonation,
   type InsertPostLike,
   type InsertPostComment,
+  type InsertPoll,
+  type InsertPollOption,
+  type InsertPollVote,
+  type InsertFeaturedEvent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -29,7 +41,13 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
-  // Post operations
+  // Admin user operations
+  getPendingUsers(): Promise<User[]>;
+  approveUser(userId: string): Promise<void>;
+  rejectUser(userId: string): Promise<void>;
+  updateUserStatus(userId: string, status: string): Promise<void>;
+  
+  // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;
   createPost(post: InsertPost): Promise<Post>;
   likePost(like: InsertPostLike): Promise<void>;
@@ -37,10 +55,17 @@ export interface IStorage {
   addPostComment(comment: InsertPostComment): Promise<PostComment>;
   getPostComments(postId: number): Promise<(PostComment & { author: User })[]>;
   
-  // Event operations
+  // Event operations (admin-only creation)
   getEvents(): Promise<(Event & { organizer: User; attendees: number; totalDonations: number })[]>;
   getEvent(id: number): Promise<(Event & { organizer: User; attendees: number; totalDonations: number }) | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: number): Promise<void>;
+  
+  // Featured events (carousel)
+  getFeaturedEvents(): Promise<(FeaturedEvent & { event: Event & { organizer: User; attendees: number; totalDonations: number } })[]>;
+  addFeaturedEvent(featuredEvent: InsertFeaturedEvent): Promise<FeaturedEvent>;
+  removeFeaturedEvent(eventId: number): Promise<void>;
   
   // RSVP operations
   createRsvp(rsvp: InsertRsvp): Promise<Rsvp>;
@@ -53,11 +78,19 @@ export interface IStorage {
   getEventDonations(eventId: number): Promise<(Donation & { donor: User })[]>;
   getTotalDonations(): Promise<number>;
   
+  // Poll operations (admin-only creation)
+  getPolls(): Promise<(Poll & { createdBy: User; options: (PollOption & { voteCount: number })[] })[]>;
+  getPoll(id: number): Promise<(Poll & { createdBy: User; options: (PollOption & { voteCount: number })[] }) | undefined>;
+  createPoll(poll: InsertPoll, options: string[]): Promise<Poll>;
+  votePoll(vote: InsertPollVote): Promise<void>;
+  getUserPollVote(pollId: number, userId: string): Promise<PollVote | undefined>;
+  
   // Stats
   getStats(): Promise<{
     totalAlumni: number;
     totalDonations: number;
     eventsThisYear: number;
+    pendingUsers: number;
   }>;
 }
 
@@ -81,6 +114,36 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Admin user operations
+  async getPendingUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.status, 'pending'))
+      .orderBy(desc(users.createdAt));
+  }
+
+  async approveUser(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ status: 'approved', updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async rejectUser(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ status: 'rejected', updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserStatus(userId: string, status: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ status: status as any, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   // Post operations
@@ -270,6 +333,95 @@ export class DatabaseStorage implements IStorage {
       .values(event)
       .returning();
     return newEvent;
+  }
+
+  async updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set({ ...event, updatedAt: new Date() })
+      .where(eq(events.id, id))
+      .returning();
+    return updatedEvent;
+  }
+
+  async deleteEvent(id: number): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
+  }
+
+  // Featured events operations
+  async getFeaturedEvents(): Promise<(FeaturedEvent & { event: Event & { organizer: User; attendees: number; totalDonations: number } })[]> {
+    const featuredEventsWithDetails = await db
+      .select({
+        id: featuredEvents.id,
+        eventId: featuredEvents.eventId,
+        order: featuredEvents.order,
+        isActive: featuredEvents.isActive,
+        createdAt: featuredEvents.createdAt,
+        event: {
+          id: events.id,
+          organizerId: events.organizerId,
+          title: events.title,
+          description: events.description,
+          venue: events.venue,
+          date: events.date,
+          time: events.time,
+          speakers: events.speakers,
+          donationGoal: events.donationGoal,
+          imageUrl: events.imageUrl,
+          createdAt: events.createdAt,
+          updatedAt: events.updatedAt,
+          organizer: users,
+          attendees: sql<number>`count(distinct ${rsvps.id})`.as('attendees'),
+          totalDonations: sql<number>`coalesce(sum(${donations.amount}), 0)`.as('totalDonations'),
+        }
+      })
+      .from(featuredEvents)
+      .leftJoin(events, eq(featuredEvents.eventId, events.id))
+      .leftJoin(users, eq(events.organizerId, users.id))
+      .leftJoin(rsvps, and(eq(events.id, rsvps.eventId), eq(rsvps.status, 'attending')))
+      .leftJoin(donations, eq(events.id, donations.eventId))
+      .where(eq(featuredEvents.isActive, true))
+      .groupBy(featuredEvents.id, events.id, users.id)
+      .orderBy(featuredEvents.order);
+
+    return featuredEventsWithDetails.map(item => ({
+      id: item.id,
+      eventId: item.eventId,
+      order: item.order,
+      isActive: item.isActive,
+      createdAt: item.createdAt,
+      event: {
+        id: item.event.id,
+        organizerId: item.event.organizerId,
+        title: item.event.title,
+        description: item.event.description,
+        venue: item.event.venue,
+        date: item.event.date,
+        time: item.event.time,
+        speakers: item.event.speakers,
+        donationGoal: item.event.donationGoal,
+        imageUrl: item.event.imageUrl,
+        createdAt: item.event.createdAt,
+        updatedAt: item.event.updatedAt,
+        organizer: item.event.organizer!,
+        attendees: Number(item.event.attendees),
+        totalDonations: Number(item.event.totalDonations),
+      }
+    }));
+  }
+
+  async addFeaturedEvent(featuredEvent: InsertFeaturedEvent): Promise<FeaturedEvent> {
+    const [newFeaturedEvent] = await db
+      .insert(featuredEvents)
+      .values(featuredEvent)
+      .returning();
+    return newFeaturedEvent;
+  }
+
+  async removeFeaturedEvent(eventId: number): Promise<void> {
+    await db
+      .delete(featuredEvents)
+      .where(eq(featuredEvents.eventId, eventId));
   }
 
   // RSVP operations
