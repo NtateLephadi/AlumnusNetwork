@@ -36,8 +36,38 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   status: varchar("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
+  location: varchar("location"),
+  jobTitle: varchar("job_title"),
+  company: varchar("company"),
+  businessVenture: varchar("business_venture"),
+  industry: varchar("industry"),
+  interests: text("interests"), // JSON array as text
+  hobbies: text("hobbies"), // JSON array as text
+  bio: text("bio"),
+  graduationYear: integer("graduation_year"),
+  degree: varchar("degree"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userEducation = pgTable("user_education", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  institution: varchar("institution").notNull(),
+  degree: varchar("degree").notNull(),
+  fieldOfStudy: varchar("field_of_study"),
+  startYear: integer("start_year"),
+  endYear: integer("end_year"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const communityExits = pgTable("community_exits", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  userName: varchar("user_name").notNull(),
+  reason: text("reason"),
+  exitedAt: timestamp("exited_at").defaultNow(),
 });
 
 // Posts/Notifications table
@@ -150,6 +180,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   postComments: many(postComments),
   polls: many(polls),
   pollVotes: many(pollVotes),
+  education: many(userEducation),
+}));
+
+export const userEducationRelations = relations(userEducation, ({ one }) => ({
+  user: one(users, { fields: [userEducation.userId], references: [users.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
