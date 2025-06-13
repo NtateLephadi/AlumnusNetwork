@@ -46,6 +46,8 @@ export interface IStorage {
   approveUser(userId: string): Promise<void>;
   rejectUser(userId: string): Promise<void>;
   updateUserStatus(userId: string, status: string): Promise<void>;
+  promoteToAdmin(userId: string): Promise<void>;
+  removeAdminStatus(userId: string): Promise<void>;
   
   // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;
