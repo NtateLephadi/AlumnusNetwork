@@ -141,6 +141,12 @@ export interface IStorage {
   deleteBankingDetails(id: number): Promise<void>;
   setActiveBankingDetails(id: number): Promise<void>;
   
+  // Notification operations
+  getUserNotifications(userId: string): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(notificationId: number): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  
   // Stats
   getStats(): Promise<{
     totalAlumni: number;
@@ -458,6 +464,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEvent(id: number): Promise<void> {
+    // First get the event details and attendees to send notifications
+    const eventDetails = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, id))
+      .limit(1);
+    
+    if (eventDetails.length > 0) {
+      const event = eventDetails[0];
+      
+      // Get all users who RSVPed to this event
+      const attendees = await db
+        .select({ userId: rsvps.userId })
+        .from(rsvps)
+        .where(eq(rsvps.eventId, id));
+      
+      // Send notifications to all attendees
+      for (const attendee of attendees) {
+        await db.insert(notifications).values({
+          userId: attendee.userId,
+          title: "Event Cancelled",
+          message: `The event "${event.title}" scheduled for ${event.date} at ${event.venue} has been cancelled by the organizers. We apologize for any inconvenience.`,
+          type: "event_deleted"
+        });
+      }
+    }
+    
     // Delete related records first to avoid foreign key constraint violations
     await db.delete(rsvps).where(eq(rsvps.eventId, id));
     await db.delete(donations).where(eq(donations.eventId, id));
@@ -992,6 +1025,33 @@ export class DatabaseStorage implements IStorage {
       .update(bankingDetails)
       .set({ isActive: true, updatedAt: new Date() })
       .where(eq(bankingDetails.id, id));
+  }
+
+  // Notification operations
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    return await db.select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db.insert(notifications)
+      .values(notification)
+      .returning();
+    return newNotification;
+  }
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
   }
 }
 
