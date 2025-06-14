@@ -51,7 +51,7 @@ export default function Profile(props: any) {
   });
 
   const { data: userEducation = [], isLoading: isEducationLoading } = useQuery({
-    queryKey: ["/api/users", profileUserId, "education"],
+    queryKey: [`/api/users/${profileUserId}/education`],
     enabled: isAuthenticated && !!profileUserId,
     retry: false,
   });
@@ -255,7 +255,7 @@ export default function Profile(props: any) {
       await apiRequest("POST", `/api/users/${profileUserId}/education`, educationData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/education`] });
       setShowEducationModal(false);
       setEditingEducation(null);
       toast({
@@ -277,7 +277,7 @@ export default function Profile(props: any) {
       await apiRequest("PUT", `/api/education/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/education`] });
       setShowEducationModal(false);
       setEditingEducation(null);
       toast({
@@ -299,7 +299,7 @@ export default function Profile(props: any) {
       await apiRequest("DELETE", `/api/education/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/education`] });
       toast({
         title: "Success",
         description: "Education deleted successfully",
