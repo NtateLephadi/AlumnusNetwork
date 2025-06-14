@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { BankingDetails } from "@shared/schema";
 
 interface DonationModalProps {
   open: boolean;
@@ -34,18 +35,18 @@ export function DonationModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: activeBankingDetails } = useQuery({
+  const { data: activeBankingDetails } = useQuery<BankingDetails>({
     queryKey: ["/api/banking-details/active"],
     enabled: open,
   });
 
   const bankingDetails = activeBankingDetails ? {
-    bankName: (activeBankingDetails as any).bankName,
-    accountName: (activeBankingDetails as any).accountName,
-    accountNumber: (activeBankingDetails as any).accountNumber,
-    branchCode: (activeBankingDetails as any).branchCode,
-    swiftCode: (activeBankingDetails as any).swiftCode,
-    reference: paymentReference || (activeBankingDetails as any).reference
+    bankName: activeBankingDetails.bankName,
+    accountName: activeBankingDetails.accountName,
+    accountNumber: activeBankingDetails.accountNumber,
+    branchCode: activeBankingDetails.branchCode,
+    swiftCode: activeBankingDetails.swiftCode,
+    reference: paymentReference || activeBankingDetails.reference
   } : {
     bankName: "First National Bank (FNB)",
     accountName: "UCT Student Christian Fellowship Alumni",
