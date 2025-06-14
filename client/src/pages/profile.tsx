@@ -40,7 +40,7 @@ export default function Profile(props: any) {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: profileUser, isLoading: loadingProfile } = useQuery({
-    queryKey: ["/api/users", profileUserId],
+    queryKey: isOwnProfile ? ["/api/auth/user"] : ["/api/users", profileUserId],
     enabled: isAuthenticated && !!profileUserId,
     retry: false,
   });
