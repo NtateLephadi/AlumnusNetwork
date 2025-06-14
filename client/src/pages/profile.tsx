@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, MapPin, Building, Briefcase, Calendar, Users, Trophy, Edit, Camera, Trash2 } from "lucide-react";
 
 export default function Profile(props: any) {
   const userId = props.params?.userId;
@@ -21,6 +22,8 @@ export default function Profile(props: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [exitReason, setExitReason] = useState("");
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const isOwnProfile = !userId || userId === (currentUser as any)?.id;
   const profileUserId = userId || (currentUser as any)?.id;
@@ -74,6 +77,40 @@ export default function Profile(props: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (imageUrl: string) => {
+      await apiRequest("PUT", `/api/users/${profileUserId}`, { profileImageUrl: imageUrl });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setShowImageUpload(false);
+      setImagePreview(null);
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update profile picture",
         variant: "destructive",
       });
     },
@@ -161,6 +198,48 @@ export default function Profile(props: any) {
     if (exitReason.trim()) {
       exitCommunityMutation.mutate(exitReason);
     }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please select an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageSubmit = () => {
+    if (imagePreview) {
+      updateProfileImageMutation.mutate(imagePreview);
+    }
+  };
+
+  const removeCurrentImage = () => {
+    updateProfileImageMutation.mutate("");
   };
 
   return (
@@ -400,13 +479,25 @@ export default function Profile(props: any) {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start space-x-6">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={(profileUser as any)?.profileImageUrl} />
-                    <AvatarFallback className="text-xl">
-                      {(profileUser as any)?.firstName?.[0] || "U"}
-                      {(profileUser as any)?.lastName?.[0] || ""}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={(profileUser as any)?.profileImageUrl} />
+                      <AvatarFallback className="text-xl">
+                        {(profileUser as any)?.firstName?.[0] || "U"}
+                        {(profileUser as any)?.lastName?.[0] || ""}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isOwnProfile && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="absolute -bottom-2 -right-2 h-8 w-8 p-0"
+                        onClick={() => setShowImageUpload(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
                       {(profileUser as any)?.firstName && (profileUser as any)?.lastName
@@ -504,6 +595,94 @@ export default function Profile(props: any) {
           </div>
         )}
       </div>
+
+      {/* Profile Picture Upload Dialog */}
+      <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Profile Picture</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Current Image */}
+            {(profileUser as any)?.profileImageUrl && !imagePreview && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Current picture:</p>
+                <Avatar className="h-20 w-20 mx-auto">
+                  <AvatarImage src={(profileUser as any)?.profileImageUrl} />
+                  <AvatarFallback>
+                    {(profileUser as any)?.firstName?.[0] || "U"}
+                    {(profileUser as any)?.lastName?.[0] || ""}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={removeCurrentImage}
+                  disabled={updateProfileImageMutation.isPending}
+                  className="mt-2"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove Picture
+                </Button>
+              </div>
+            )}
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">New picture preview:</p>
+                <div className="flex justify-center">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={imagePreview} />
+                    <AvatarFallback>Preview</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex justify-center space-x-2 mt-3">
+                  <Button
+                    onClick={handleImageSubmit}
+                    disabled={updateProfileImageMutation.isPending}
+                    size="sm"
+                  >
+                    {updateProfileImageMutation.isPending ? "Updating..." : "Update Picture"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setImagePreview(null)}
+                    disabled={updateProfileImageMutation.isPending}
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Upload New Image */}
+            {!imagePreview && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center w-full">
+                  <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Camera className="w-8 h-8 mb-2 text-gray-500" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span> a new profile picture
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                    </div>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
