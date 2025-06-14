@@ -155,6 +155,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.params.userId;
       const currentUserId = req.user.claims.sub;
       
+      console.log("Profile update request:", {
+        userId,
+        currentUserId,
+        body: req.body
+      });
+      
       // Only allow users to update their own profile
       if (userId !== currentUserId) {
         return res.status(403).json({ message: "Unauthorized to update this profile" });
@@ -164,7 +170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       console.error("Error updating user profile:", error);
-      res.status(500).json({ message: "Failed to update user profile" });
+      console.error("Error details:", error.message, error.stack);
+      res.status(500).json({ message: "Failed to update user profile", error: error.message });
     }
   });
 

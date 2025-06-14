@@ -58,7 +58,7 @@ export default function Profile(props: any) {
         description: "Profile updated successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -70,9 +70,10 @@ export default function Profile(props: any) {
         }, 500);
         return;
       }
+      console.error("Profile update error:", error);
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     },
