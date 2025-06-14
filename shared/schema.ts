@@ -213,6 +213,20 @@ export const userNonprofits = pgTable("user_nonprofits", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Banking details configuration (admin-only)
+export const bankingDetails = pgTable("banking_details", {
+  id: serial("id").primaryKey(),
+  bankName: varchar("bank_name").notNull(),
+  accountName: varchar("account_name").notNull(),
+  accountNumber: varchar("account_number").notNull(),
+  branchCode: varchar("branch_code").notNull(),
+  swiftCode: varchar("swift_code"),
+  reference: varchar("reference").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -358,6 +372,12 @@ export const insertPledgeSchema = createInsertSchema(pledges).omit({
   createdAt: true,
 });
 
+export const insertBankingDetailsSchema = createInsertSchema(bankingDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -393,3 +413,6 @@ export type InsertUserBusinessVenture = typeof userBusinessVentures.$inferInsert
 
 export type UserNonprofit = typeof userNonprofits.$inferSelect;
 export type InsertUserNonprofit = typeof userNonprofits.$inferInsert;
+
+export type BankingDetails = typeof bankingDetails.$inferSelect;
+export type InsertBankingDetails = z.infer<typeof insertBankingDetailsSchema>;

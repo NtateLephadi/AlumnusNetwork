@@ -15,6 +15,7 @@ import {
   userEducation,
   userBusinessVentures,
   userNonprofits,
+  bankingDetails,
   type User,
   type UpsertUser,
   type Post,
@@ -45,6 +46,8 @@ import {
   type InsertUserEducation,
   type InsertUserBusinessVenture,
   type InsertUserNonprofit,
+  type BankingDetails,
+  type InsertBankingDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
