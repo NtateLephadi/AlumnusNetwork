@@ -363,14 +363,14 @@ export default function AdminUsers() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Navigation */}
         <div className="mb-6">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-300">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setSelectedTab("pending")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   selectedTab === "pending"
-                    ? "border-uct-blue text-uct-blue"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-white text-white"
+                    : "border-transparent text-gray-300 hover:text-white hover:border-gray-300"
                 }`}
               >
                 Pending Admissions ({(pendingUsers as any[])?.length || 0})
@@ -379,8 +379,8 @@ export default function AdminUsers() {
                 onClick={() => setSelectedTab("all")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   selectedTab === "all"
-                    ? "border-uct-blue text-uct-blue"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-white text-white"
+                    : "border-transparent text-gray-300 hover:text-white hover:border-gray-300"
                 }`}
               >
                 All Users
@@ -389,8 +389,8 @@ export default function AdminUsers() {
                 onClick={() => setSelectedTab("banking")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   selectedTab === "banking"
-                    ? "border-uct-blue text-uct-blue"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-white text-white"
+                    : "border-transparent text-gray-300 hover:text-white hover:border-gray-300"
                 }`}
               >
                 Banking Details ({(bankingDetails as any[])?.length || 0})
@@ -403,10 +403,10 @@ export default function AdminUsers() {
         {selectedTab === "pending" && (
           <div>
             <div className="mb-6">
-              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">
+              <h2 className="text-lg font-heading font-semibold text-white mb-2">
                 Pending User Admissions
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-300">
                 Review and approve new users requesting access to the UCT SCF Alumni community.
               </p>
             </div>
