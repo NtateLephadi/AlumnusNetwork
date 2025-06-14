@@ -67,8 +67,8 @@ export interface IStorage {
   getPostComments(postId: number): Promise<(PostComment & { author: User })[]>;
   
   // Event operations (admin-only creation)
-  getEvents(): Promise<(Event & { organizer: User; attendees: number; totalDonations: number })[]>;
-  getEvent(id: number): Promise<(Event & { organizer: User; attendees: number; totalDonations: number }) | undefined>;
+  getEvents(): Promise<(Event & { organizer: User; attendees: number; totalDonations: number; totalPledges: number })[]>;
+  getEvent(id: number): Promise<(Event & { organizer: User; attendees: number; totalDonations: number; totalPledges: number }) | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: number): Promise<void>;
@@ -301,7 +301,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(): Promise<(Event & { organizer: User; attendees: number; totalDonations: number })[]> {
+  async getEvents(): Promise<(Event & { organizer: User; attendees: number; totalDonations: number; totalPledges: number })[]> {
     const eventsWithDetails = await db
       .select({
         id: events.id,
@@ -318,12 +318,14 @@ export class DatabaseStorage implements IStorage {
         updatedAt: events.updatedAt,
         organizer: users,
         attendees: sql<number>`count(distinct ${rsvps.id})`.as('attendees'),
-        totalDonations: sql<number>`coalesce(sum(${donations.amount}), 0)`.as('totalDonations'),
+        totalDonations: sql<number>`coalesce(sum(distinct ${donations.amount}), 0)`.as('totalDonations'),
+        totalPledges: sql<number>`coalesce(sum(distinct ${pledges.amount}), 0)`.as('totalPledges'),
       })
       .from(events)
       .leftJoin(users, eq(events.organizerId, users.id))
       .leftJoin(rsvps, and(eq(events.id, rsvps.eventId), eq(rsvps.status, 'attending')))
       .leftJoin(donations, eq(events.id, donations.eventId))
+      .leftJoin(pledges, eq(events.id, pledges.eventId))
       .groupBy(events.id, users.id)
       .orderBy(desc(events.createdAt));
 
@@ -343,10 +345,11 @@ export class DatabaseStorage implements IStorage {
       organizer: event.organizer!,
       attendees: Number(event.attendees),
       totalDonations: Number(event.totalDonations),
+      totalPledges: Number(event.totalPledges),
     }));
   }
 
-  async getEvent(id: number): Promise<(Event & { organizer: User; attendees: number; totalDonations: number }) | undefined> {
+  async getEvent(id: number): Promise<(Event & { organizer: User; attendees: number; totalDonations: number; totalPledges: number }) | undefined> {
     const [eventWithDetails] = await db
       .select({
         id: events.id,
@@ -363,12 +366,14 @@ export class DatabaseStorage implements IStorage {
         updatedAt: events.updatedAt,
         organizer: users,
         attendees: sql<number>`count(distinct ${rsvps.id})`.as('attendees'),
-        totalDonations: sql<number>`coalesce(sum(${donations.amount}), 0)`.as('totalDonations'),
+        totalDonations: sql<number>`coalesce(sum(distinct ${donations.amount}), 0)`.as('totalDonations'),
+        totalPledges: sql<number>`coalesce(sum(distinct ${pledges.amount}), 0)`.as('totalPledges'),
       })
       .from(events)
       .leftJoin(users, eq(events.organizerId, users.id))
       .leftJoin(rsvps, and(eq(events.id, rsvps.eventId), eq(rsvps.status, 'attending')))
       .leftJoin(donations, eq(events.id, donations.eventId))
+      .leftJoin(pledges, eq(events.id, pledges.eventId))
       .where(eq(events.id, id))
       .groupBy(events.id, users.id);
 
@@ -390,6 +395,7 @@ export class DatabaseStorage implements IStorage {
       organizer: eventWithDetails.organizer!,
       attendees: Number(eventWithDetails.attendees),
       totalDonations: Number(eventWithDetails.totalDonations),
+      totalPledges: Number(eventWithDetails.totalPledges),
     };
   }
 

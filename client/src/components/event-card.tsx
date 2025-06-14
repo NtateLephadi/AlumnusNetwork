@@ -27,6 +27,7 @@ interface EventCardProps {
     };
     attendees: number;
     totalDonations: number;
+    totalPledges: number;
   };
 }
 
