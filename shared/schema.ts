@@ -44,6 +44,7 @@ export const users = pgTable("users", {
   interests: text("interests"), // JSON array as text
   hobbies: text("hobbies"), // JSON array as text
   bio: text("bio"),
+  favoriteBibleVerse: text("favorite_bible_verse"),
   graduationYear: integer("graduation_year"),
   degree: varchar("degree"),
   createdAt: timestamp("created_at").defaultNow(),
