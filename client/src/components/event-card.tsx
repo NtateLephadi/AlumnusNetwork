@@ -73,22 +73,22 @@ export default function EventCard({ event }: EventCardProps) {
   const isUpcoming = eventDate > new Date();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col">
       {event.imageUrl ? (
         <img 
           src={event.imageUrl} 
           alt={event.title} 
-          className="w-full h-48 object-cover" 
+          className="w-full h-48 object-cover flex-shrink-0" 
         />
       ) : (
         <img 
           src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300" 
           alt="Alumni networking event" 
-          className="w-full h-48 object-cover" 
+          className="w-full h-48 object-cover flex-shrink-0" 
         />
       )}
       
-      <div className="p-6">
+      <div className="p-6 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-4">
           <div>
             {isUpcoming && (
@@ -144,7 +144,7 @@ export default function EventCard({ event }: EventCardProps) {
           <Progress value={donationProgress} className="mb-4" />
         )}
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 mt-auto">
           <Button
             className={`flex-1 font-semibold py-2 px-4 rounded-lg transition-colors ${
               rsvpStatus === "attending" 
