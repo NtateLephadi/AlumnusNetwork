@@ -210,6 +210,7 @@ export default function Profile(props: any) {
       businessVenture: formData.get("businessVenture"),
       industry: formData.get("industry"),
       bio: formData.get("bio"),
+      favoriteBibleVerse: formData.get("favoriteBibleVerse"),
       graduationYear: formData.get("graduationYear") ? parseInt(formData.get("graduationYear") as string) : null,
       degree: formData.get("degree"),
       interests: formData.get("interests") ? JSON.stringify((formData.get("interests") as string).split(",").map(i => i.trim())) : null,
@@ -772,6 +773,17 @@ export default function Profile(props: any) {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="favoriteBibleVerse">Favorite Bible Verse</Label>
+                  <Textarea
+                    id="favoriteBibleVerse"
+                    name="favoriteBibleVerse"
+                    rows={3}
+                    defaultValue={(profileUser as any)?.favoriteBibleVerse || ""}
+                    placeholder="Share your favorite Bible verse and what it means to you..."
+                  />
+                </div>
+
                 <div className="flex justify-end space-x-3">
                   <Button
                     type="button"
@@ -1168,7 +1180,7 @@ export default function Profile(props: any) {
                 <CardHeader>
                   <CardTitle>Personal Interests</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   {(profileUser as any)?.hobbies && (
                     <div>
                       <span className="font-medium text-gray-700 block mb-1">Hobbies & Interests:</span>
@@ -1177,6 +1189,32 @@ export default function Profile(props: any) {
                           <Badge key={index} variant="outline" className="bg-gray-50">{hobby}</Badge>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  
+                  {(profileUser as any)?.favoriteBibleVerse && (
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-2 flex items-center">
+                        <Heart className="h-4 w-4 mr-2 text-uct-blue" />
+                        Favorite Bible Verse:
+                      </span>
+                      <div className="bg-blue-50 border-l-4 border-uct-blue p-4 rounded-r-lg">
+                        <p className="text-gray-800 italic whitespace-pre-wrap">{(profileUser as any).favoriteBibleVerse}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!(profileUser as any)?.hobbies && !(profileUser as any)?.favoriteBibleVerse && (
+                    <div className="text-center py-8 text-gray-500">
+                      {isOwnProfile ? (
+                        <div>
+                          <Heart className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                          <p>No personal information added yet</p>
+                          <p className="text-sm mt-1">Share your hobbies and favorite Bible verse</p>
+                        </div>
+                      ) : (
+                        <p>No personal information available</p>
+                      )}
                     </div>
                   )}
                 </CardContent>
