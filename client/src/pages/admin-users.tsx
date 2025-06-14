@@ -288,9 +288,12 @@ export default function AdminUsers() {
 
   const handleBankingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Banking form submission:", { editingBanking, bankingForm });
     if (editingBanking) {
+      console.log("Updating banking details with:", { id: editingBanking.id, data: bankingForm });
       updateBankingMutation.mutate({ id: editingBanking.id, data: bankingForm });
     } else {
+      console.log("Creating banking details with:", bankingForm);
       createBankingMutation.mutate(bankingForm);
     }
   };
