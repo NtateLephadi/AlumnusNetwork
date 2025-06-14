@@ -203,7 +203,8 @@ export default function AdminUsers() {
         description: "Banking details updated successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Banking update error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -217,7 +218,7 @@ export default function AdminUsers() {
       }
       toast({
         title: "Error",
-        description: "Failed to update banking details",
+        description: `Failed to update banking details: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     },

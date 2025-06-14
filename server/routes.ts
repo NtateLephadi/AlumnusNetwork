@@ -832,12 +832,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/banking-details/:id', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log("Updating banking details with ID:", id);
+      console.log("Request body:", req.body);
+      
       const updateData = insertBankingDetailsSchema.partial().parse(req.body);
+      console.log("Parsed update data:", updateData);
+      
       const bankingDetails = await storage.updateBankingDetails(id, updateData);
+      console.log("Updated banking details:", bankingDetails);
+      
       res.json(bankingDetails);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating banking details:", error);
-      res.status(500).json({ message: "Failed to update banking details" });
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        body: req.body,
+        id: req.params.id
+      });
+      res.status(500).json({ 
+        message: "Failed to update banking details",
+        error: error.message 
+      });
     }
   });
 
