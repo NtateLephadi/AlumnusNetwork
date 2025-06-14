@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { DonationModal } from "@/components/donation-modal";
 
 export default function Sidebar() {
   const { toast } = useToast();
+  const [showGenericDonation, setShowGenericDonation] = useState(false);
   
   const { data: stats } = useQuery({
     queryKey: ["/api/stats"],
@@ -45,7 +48,10 @@ export default function Sidebar() {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button className="w-full bg-uct-blue hover:bg-blue-700 text-white">
+          <Button 
+            className="w-full bg-uct-blue hover:bg-blue-700 text-white"
+            onClick={() => setShowGenericDonation(true)}
+          >
             <i className="fas fa-heart mr-2"></i>
             Make a Donation
           </Button>
@@ -133,8 +139,15 @@ export default function Sidebar() {
         </CardContent>
       </Card>
 
-
-
+      <DonationModal 
+        open={showGenericDonation} 
+        onOpenChange={setShowGenericDonation}
+        eventTitle="General Community Support"
+        eventId={null}
+        donationGoal={null}
+        totalDonations={0}
+        totalPledges={0}
+      />
     </div>
   );
 }
