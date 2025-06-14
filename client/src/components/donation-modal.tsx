@@ -17,6 +17,7 @@ interface DonationModalProps {
   donationGoal?: number | null;
   totalDonations: number;
   totalPledges: number;
+  paymentReference?: string | null;
 }
 
 export function DonationModal({ 
@@ -25,20 +26,33 @@ export function DonationModal({
   eventTitle, 
   eventId,
   donationGoal, 
-  totalDonations 
+  totalDonations,
+  paymentReference 
 }: DonationModalProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [pledgeAmount, setPledgeAmount] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const bankingDetails = {
+  const { data: activeBankingDetails } = useQuery({
+    queryKey: ["/api/banking-details/active"],
+    enabled: open,
+  });
+
+  const bankingDetails = activeBankingDetails ? {
+    bankName: activeBankingDetails.bankName,
+    accountName: activeBankingDetails.accountName,
+    accountNumber: activeBankingDetails.accountNumber,
+    branchCode: activeBankingDetails.branchCode,
+    swiftCode: activeBankingDetails.swiftCode,
+    reference: paymentReference || activeBankingDetails.reference
+  } : {
     bankName: "First National Bank (FNB)",
     accountName: "UCT Student Christian Fellowship Alumni",
     accountNumber: "62847291038",
     branchCode: "250655",
     swiftCode: "FIRNZAJJ",
-    reference: `Event-${eventTitle.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 20)}`
+    reference: paymentReference || `Event-${eventTitle.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 20)}`
   };
 
   const pledgeMutation = useMutation({

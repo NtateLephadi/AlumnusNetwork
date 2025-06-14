@@ -12,11 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/event-card";
 import { CreateEventModal } from "@/components/create-event-modal";
+import { EditEventModal } from "@/components/edit-event-modal";
 
 export default function Events() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
 

@@ -19,6 +19,7 @@ interface EventCardProps {
     time: string;
     speakers: string | null;
     donationGoal: string | null;
+    paymentReference: string | null;
     imageUrl: string | null;
     organizer: {
       id: string;
@@ -185,6 +186,7 @@ export default function EventCard({ event }: EventCardProps) {
         donationGoal={event.donationGoal ? parseFloat(event.donationGoal) : null}
         totalDonations={event.totalDonations}
         totalPledges={totalPledges}
+        paymentReference={event.paymentReference}
       />
     </div>
   );
