@@ -70,7 +70,7 @@ export default function EventCard({ event }: EventCardProps) {
   });
 
   const donationGoal = event.donationGoal ? parseFloat(event.donationGoal) : 0;
-  const donationProgress = donationGoal > 0 ? (event.totalDonations / donationGoal) * 100 : 0;
+  const pledgeProgress = donationGoal > 0 ? (event.totalPledges / donationGoal) * 100 : 0;
 
   const eventDate = new Date(`${event.date}T${event.time}`);
   const isUpcoming = eventDate > new Date();
@@ -140,23 +140,15 @@ export default function EventCard({ event }: EventCardProps) {
             </div>
             {donationGoal > 0 && (
               <div className="text-sm">
-                <span className="font-semibold text-uct-gold">R{event.totalDonations.toLocaleString()}</span>
-                <span className="text-gray-600"> raised</span>
-                {event.totalPledges > 0 && (
-                  <>
-                    <span className="text-gray-600"> + </span>
-                    <span className="font-semibold text-green-600">R{event.totalPledges.toLocaleString()}</span>
-                    <span className="text-gray-600"> pledged</span>
-                  </>
-                )}
-                <span className="text-gray-600"> of R{donationGoal.toLocaleString()} goal</span>
+                <span className="font-semibold text-green-600">R{event.totalPledges.toLocaleString()}</span>
+                <span className="text-gray-600"> pledged of R{donationGoal.toLocaleString()} goal</span>
               </div>
             )}
           </div>
         </div>
 
         {donationGoal > 0 && (
-          <Progress value={donationProgress} className="mb-4" />
+          <Progress value={pledgeProgress} className="mb-4" />
         )}
         
         <div className="flex items-center space-x-3 mt-auto">
