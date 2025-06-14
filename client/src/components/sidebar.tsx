@@ -48,25 +48,25 @@ export default function Sidebar() {
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <Button 
-            className="w-full bg-uct-blue hover:bg-blue-700 text-white"
+            className="w-full bg-uct-blue hover:bg-blue-700 text-white justify-start px-4 py-3"
             onClick={() => setShowGenericDonation(true)}
           >
-            <i className="fas fa-heart mr-2"></i>
+            <i className="fas fa-heart mr-3 w-4 text-center"></i>
             Make a Donation
           </Button>
           <div>
             <Link href="/events">
-              <Button variant="outline" className="w-full">
-                <i className="fas fa-calendar text-uct-blue mr-2"></i>
+              <Button variant="outline" className="w-full justify-start px-4 py-3">
+                <i className="fas fa-calendar text-uct-blue mr-3 w-4 text-center"></i>
                 Browse Events
               </Button>
             </Link>
           </div>
           <Link href="/profile">
-            <Button variant="outline" className="w-full">
-              <i className="fas fa-user-edit text-uct-blue mr-2"></i>
+            <Button variant="outline" className="w-full justify-start px-4 py-3">
+              <i className="fas fa-user-edit text-uct-blue mr-3 w-4 text-center"></i>
               Update Profile
             </Button>
           </Link>
