@@ -36,7 +36,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
     mutationFn: async (data: any) => {
       const eventData = {
         ...data,
-        donationGoal: data.donationGoal ? parseFloat(data.donationGoal) : null,
+        donationGoal: data.donationGoal || null,
         imageUrl: data.imageUrl || null,
       };
       await apiRequest("POST", "/api/events", eventData);
@@ -83,6 +83,20 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleDonationGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d.]/g, ''); // Remove non-numeric characters except decimal
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) { // Allow valid decimal format
+      setFormData(prev => ({ ...prev, donationGoal: value }));
+    }
+  };
+
+  const formatDisplayValue = (value: string) => {
+    if (!value) return '';
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return value;
+    return `R ${numValue.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -256,18 +270,20 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
           <div>
             <Label htmlFor="donationGoal">Donation Goal (Optional)</Label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-500">R</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R</span>
               <Input
                 id="donationGoal"
-                type="number"
                 value={formData.donationGoal}
-                onChange={handleInputChange('donationGoal')}
-                placeholder="0"
+                onChange={handleDonationGoalChange}
+                placeholder="0.00"
                 className="pl-8"
-                min="0"
-                step="0.01"
               />
             </div>
+            {formData.donationGoal && (
+              <p className="text-sm text-gray-600 mt-1">
+                Goal: {formatDisplayValue(formData.donationGoal)}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
