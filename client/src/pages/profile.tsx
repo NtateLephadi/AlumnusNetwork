@@ -250,6 +250,99 @@ export default function Profile(props: any) {
     updateProfileImageMutation.mutate("");
   };
 
+  const addEducationMutation = useMutation({
+    mutationFn: async (educationData: any) => {
+      await apiRequest("POST", `/api/users/${profileUserId}/education`, educationData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      setShowEducationModal(false);
+      setEditingEducation(null);
+      toast({
+        title: "Success",
+        description: "Education added successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add education",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEducationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      await apiRequest("PUT", `/api/education/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      setShowEducationModal(false);
+      setEditingEducation(null);
+      toast({
+        title: "Success",
+        description: "Education updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to update education",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEducationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/education/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId, "education"] });
+      toast({
+        title: "Success",
+        description: "Education deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete education",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEducationSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      institution: formData.get('institution'),
+      degree: formData.get('degree'),
+      fieldOfStudy: formData.get('fieldOfStudy'),
+      startYear: parseInt(formData.get('startYear') as string) || null,
+      endYear: parseInt(formData.get('endYear') as string) || null,
+      description: formData.get('description'),
+    };
+
+    if (editingEducation) {
+      updateEducationMutation.mutate({ id: editingEducation.id, data });
+    } else {
+      addEducationMutation.mutate(data);
+    }
+  };
+
+  const openEditEducation = (education: any) => {
+    setEditingEducation(education);
+    setShowEducationModal(true);
+  };
+
+  const openAddEducation = () => {
+    setEditingEducation(null);
+    setShowEducationModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -570,23 +663,94 @@ export default function Profile(props: any) {
                 </CardContent>
               </Card>
 
+              {/* Education Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Education</CardTitle>
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openAddEducation}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Add Qualification
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isEducationLoading ? (
+                    <div className="text-center py-4 text-gray-500">Loading education...</div>
+                  ) : userEducation.length > 0 ? (
+                    <div className="space-y-4">
+                      {userEducation.map((education: any) => (
+                        <div key={education.id} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{education.degree}</h4>
+                              <p className="text-gray-700">{education.institution}</p>
+                              {education.fieldOfStudy && (
+                                <p className="text-sm text-gray-600">{education.fieldOfStudy}</p>
+                              )}
+                              <p className="text-sm text-gray-500 mt-1">
+                                {education.startYear && education.endYear 
+                                  ? `${education.startYear} - ${education.endYear}`
+                                  : education.startYear 
+                                    ? `${education.startYear} - Present`
+                                    : education.endYear 
+                                      ? `Completed ${education.endYear}`
+                                      : 'Dates not specified'
+                                }
+                              </p>
+                              {education.description && (
+                                <p className="text-sm text-gray-600 mt-2">{education.description}</p>
+                              )}
+                            </div>
+                            {isOwnProfile && (
+                              <div className="flex space-x-2 ml-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditEducation(education)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteEducationMutation.mutate(education.id)}
+                                  disabled={deleteEducationMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      {isOwnProfile ? (
+                        <div>
+                          <Calendar className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                          <p>No qualifications added yet</p>
+                          <p className="text-sm mt-1">Add your educational background and certifications</p>
+                        </div>
+                      ) : (
+                        <p>No education information available</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Personal Interests */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Education & Personal</CardTitle>
+                  <CardTitle>Personal Interests</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {(profileUser as any)?.degree && (
-                    <div>
-                      <span className="font-medium text-gray-700">Degree:</span>
-                      <span className="ml-2 text-gray-600">{(profileUser as any).degree}</span>
-                    </div>
-                  )}
-                  {(profileUser as any)?.graduationYear && (
-                    <div>
-                      <span className="font-medium text-gray-700">Graduation Year:</span>
-                      <span className="ml-2 text-gray-600">{(profileUser as any).graduationYear}</span>
-                    </div>
-                  )}
                   {(profileUser as any)?.hobbies && (
                     <div>
                       <span className="font-medium text-gray-700 block mb-1">Hobbies & Interests:</span>
@@ -689,6 +853,106 @@ export default function Profile(props: any) {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Education Modal */}
+      <Dialog open={showEducationModal} onOpenChange={setShowEducationModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingEducation ? "Edit Qualification" : "Add Qualification"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEducationSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="institution">Institution</Label>
+                <Input
+                  id="institution"
+                  name="institution"
+                  defaultValue={editingEducation?.institution || ""}
+                  placeholder="e.g., University of Cape Town"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="degree">Degree/Qualification</Label>
+                <Input
+                  id="degree"
+                  name="degree"
+                  defaultValue={editingEducation?.degree || ""}
+                  placeholder="e.g., Bachelor of Science, MBA, Certificate"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="fieldOfStudy">Field of Study</Label>
+                <Input
+                  id="fieldOfStudy"
+                  name="fieldOfStudy"
+                  defaultValue={editingEducation?.fieldOfStudy || ""}
+                  placeholder="e.g., Computer Science, Business Administration"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startYear">Start Year</Label>
+                  <Input
+                    id="startYear"
+                    name="startYear"
+                    type="number"
+                    min="1900"
+                    max="2030"
+                    defaultValue={editingEducation?.startYear || ""}
+                    placeholder="2020"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endYear">End Year</Label>
+                  <Input
+                    id="endYear"
+                    name="endYear"
+                    type="number"
+                    min="1900"
+                    max="2030"
+                    defaultValue={editingEducation?.endYear || ""}
+                    placeholder="2024"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editingEducation?.description || ""}
+                  placeholder="Additional details, achievements, or notes..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEducationModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={addEducationMutation.isPending || updateEducationMutation.isPending}
+              >
+                {(addEducationMutation.isPending || updateEducationMutation.isPending) 
+                  ? "Saving..." 
+                  : editingEducation 
+                    ? "Update" 
+                    : "Add"
+                }
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
