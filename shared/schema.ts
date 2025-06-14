@@ -191,6 +191,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   postComments: many(postComments),
   polls: many(polls),
   pollVotes: many(pollVotes),
+  pledges: many(pledges),
   education: many(userEducation),
 }));
 
@@ -208,6 +209,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   organizer: one(users, { fields: [events.organizerId], references: [users.id] }),
   rsvps: many(rsvps),
   donations: many(donations),
+  pledges: many(pledges),
 }));
 
 export const rsvpsRelations = relations(rsvps, ({ one }) => ({
@@ -249,6 +251,11 @@ export const pollVotesRelations = relations(pollVotes, ({ one }) => ({
 
 export const featuredEventsRelations = relations(featuredEvents, ({ one }) => ({
   event: one(events, { fields: [featuredEvents.eventId], references: [events.id] }),
+}));
+
+export const pledgesRelations = relations(pledges, ({ one }) => ({
+  pledger: one(users, { fields: [pledges.pledgerId], references: [users.id] }),
+  event: one(events, { fields: [pledges.eventId], references: [events.id] }),
 }));
 
 // Insert schemas
@@ -304,6 +311,11 @@ export const insertFeaturedEventSchema = createInsertSchema(featuredEvents).omit
   createdAt: true,
 });
 
+export const insertPledgeSchema = createInsertSchema(pledges).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -317,6 +329,7 @@ export type Poll = typeof polls.$inferSelect;
 export type PollOption = typeof pollOptions.$inferSelect;
 export type PollVote = typeof pollVotes.$inferSelect;
 export type FeaturedEvent = typeof featuredEvents.$inferSelect;
+export type Pledge = typeof pledges.$inferSelect;
 
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -328,3 +341,4 @@ export type InsertPoll = z.infer<typeof insertPollSchema>;
 export type InsertPollOption = z.infer<typeof insertPollOptionSchema>;
 export type InsertPollVote = z.infer<typeof insertPollVoteSchema>;
 export type InsertFeaturedEvent = z.infer<typeof insertFeaturedEventSchema>;
+export type InsertPledge = z.infer<typeof insertPledgeSchema>;
