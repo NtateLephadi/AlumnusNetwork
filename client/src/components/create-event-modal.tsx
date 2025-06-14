@@ -23,7 +23,11 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
     time: "",
     speakers: "",
     donationGoal: "",
+    imageUrl: "",
   });
+  
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -33,6 +37,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
       const eventData = {
         ...data,
         donationGoal: data.donationGoal ? parseFloat(data.donationGoal) : null,
+        imageUrl: data.imageUrl || null,
       };
       await apiRequest("POST", "/api/events", eventData);
     },
@@ -50,7 +55,10 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
         time: "",
         speakers: "",
         donationGoal: "",
+        imageUrl: "",
       });
+      setImageFile(null);
+      setImagePreview(null);
       onOpenChange(false);
     },
     onError: (error) => {
@@ -75,6 +83,26 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, imageUrl: "" }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -146,6 +174,61 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
               placeholder="Event location"
               required
             />
+          </div>
+
+          <div>
+            <Label htmlFor="image">Event Image (Optional)</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center w-full">
+                <label
+                  htmlFor="image"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <i className="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                  <input
+                    id="image"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </div>
+              
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <i className="fas fa-times text-sm"></i>
+                  </button>
+                </div>
+              )}
+              
+              <div className="text-center">
+                <Label htmlFor="imageUrl">Or paste image URL</Label>
+                <Input
+                  id="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleInputChange('imageUrl')}
+                  placeholder="https://example.com/image.jpg"
+                  className="mt-1"
+                />
+              </div>
+            </div>
           </div>
 
           <div>

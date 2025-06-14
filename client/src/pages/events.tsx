@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/event-card";
-// import { CreateEventModal } from "@/components/create-event-modal";
+import { CreateEventModal } from "@/components/create-event-modal";
 
 export default function Events() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -87,7 +87,7 @@ export default function Events() {
             </div>
             {isAdmin && (
               <Button
-                onClick={() => toast({ title: "Coming Soon", description: "Event creation will be available soon" })}
+                onClick={() => setShowCreateEvent(true)}
                 className="bg-uct-blue hover:bg-blue-700"
               >
                 <i className="fas fa-plus mr-2"></i>
@@ -223,7 +223,10 @@ export default function Events() {
         </Tabs>
       </div>
 
-
+      <CreateEventModal
+        open={showCreateEvent}
+        onOpenChange={setShowCreateEvent}
+      />
     </div>
   );
 }
