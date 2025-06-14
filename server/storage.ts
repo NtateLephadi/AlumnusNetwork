@@ -12,6 +12,7 @@ import {
   featuredEvents,
   pledges,
   communityExits,
+  userEducation,
   type User,
   type UpsertUser,
   type Post,
@@ -25,6 +26,7 @@ import {
   type PollVote,
   type FeaturedEvent,
   type Pledge,
+  type UserEducation,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
@@ -36,6 +38,7 @@ import {
   type InsertPollVote,
   type InsertFeaturedEvent,
   type InsertPledge,
+  type InsertUserEducation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -57,6 +60,12 @@ export interface IStorage {
   getUserProfile(userId: string): Promise<User | undefined>;
   updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
   exitCommunity(userId: string, userName: string, reason?: string): Promise<void>;
+  
+  // Education operations
+  getUserEducation(userId: string): Promise<UserEducation[]>;
+  addUserEducation(education: InsertUserEducation): Promise<UserEducation>;
+  updateUserEducation(id: number, education: Partial<InsertUserEducation>): Promise<UserEducation>;
+  deleteUserEducation(id: number): Promise<void>;
   
   // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;
@@ -808,6 +817,35 @@ export class DatabaseStorage implements IStorage {
       eventsThisYear: Number(eventsThisYear.count),
       pendingUsers: Number(pendingUsers.count),
     };
+  }
+
+  // Education operations
+  async getUserEducation(userId: string): Promise<UserEducation[]> {
+    return await db.select()
+      .from(userEducation)
+      .where(eq(userEducation.userId, userId))
+      .orderBy(desc(userEducation.endYear));
+  }
+
+  async addUserEducation(education: InsertUserEducation): Promise<UserEducation> {
+    const [newEducation] = await db
+      .insert(userEducation)
+      .values(education)
+      .returning();
+    return newEducation;
+  }
+
+  async updateUserEducation(id: number, education: Partial<InsertUserEducation>): Promise<UserEducation> {
+    const [updatedEducation] = await db
+      .update(userEducation)
+      .set(education)
+      .where(eq(userEducation.id, id))
+      .returning();
+    return updatedEducation;
+  }
+
+  async deleteUserEducation(id: number): Promise<void> {
+    await db.delete(userEducation).where(eq(userEducation.id, id));
   }
 }
 

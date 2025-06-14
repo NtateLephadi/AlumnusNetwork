@@ -342,3 +342,6 @@ export type InsertPollOption = z.infer<typeof insertPollOptionSchema>;
 export type InsertPollVote = z.infer<typeof insertPollVoteSchema>;
 export type InsertFeaturedEvent = z.infer<typeof insertFeaturedEventSchema>;
 export type InsertPledge = z.infer<typeof insertPledgeSchema>;
+
+export type UserEducation = typeof userEducation.$inferSelect;
+export type InsertUserEducation = typeof userEducation.$inferInsert;
