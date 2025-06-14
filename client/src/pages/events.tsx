@@ -49,6 +49,52 @@ export default function Events() {
     retry: false,
   });
 
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete event");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Success",
+        description: "Event deleted successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete event",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteEvent = (eventId: number, eventTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`)) {
+      deleteEventMutation.mutate(eventId);
+    }
+  };
+
   if (isLoading || loadingEvents) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -160,18 +206,31 @@ export default function Events() {
                 {filteredEvents.map((event: any) => (
                   <div key={event.id} className="relative">
                     <EventCard event={event} />
-                    {isAdmin && event.donationGoal && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 h-8 w-8 p-0"
-                        onClick={() => {
-                          setEditingEvent(event);
-                          setShowEditEvent(true);
-                        }}
-                      >
-                        <i className="fas fa-edit text-xs"></i>
-                      </Button>
+                    {isAdmin && (
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-gray-50"
+                          onClick={() => {
+                            setEditingEvent(event);
+                            setShowEditEvent(true);
+                          }}
+                          title="Edit event"
+                        >
+                          <i className="fas fa-edit text-xs text-gray-600"></i>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-red-50 border-red-200 hover:border-red-300"
+                          onClick={() => handleDeleteEvent(event.id, event.title)}
+                          disabled={deleteEventMutation.isPending}
+                          title="Delete event"
+                        >
+                          <i className="fas fa-trash text-xs text-red-600"></i>
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -195,18 +254,31 @@ export default function Events() {
                 {upcomingEvents.map((event: any) => (
                   <div key={event.id} className="relative">
                     <EventCard event={event} />
-                    {isAdmin && event.donationGoal && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 h-8 w-8 p-0"
-                        onClick={() => {
-                          setEditingEvent(event);
-                          setShowEditEvent(true);
-                        }}
-                      >
-                        <i className="fas fa-edit text-xs"></i>
-                      </Button>
+                    {isAdmin && (
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-gray-50"
+                          onClick={() => {
+                            setEditingEvent(event);
+                            setShowEditEvent(true);
+                          }}
+                          title="Edit event"
+                        >
+                          <i className="fas fa-edit text-xs text-gray-600"></i>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-red-50 border-red-200 hover:border-red-300"
+                          onClick={() => handleDeleteEvent(event.id, event.title)}
+                          disabled={deleteEventMutation.isPending}
+                          title="Delete event"
+                        >
+                          <i className="fas fa-trash text-xs text-red-600"></i>
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -230,18 +302,31 @@ export default function Events() {
                 {pastEvents.map((event: any) => (
                   <div key={event.id} className="relative">
                     <EventCard event={event} />
-                    {isAdmin && event.donationGoal && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 h-8 w-8 p-0"
-                        onClick={() => {
-                          setEditingEvent(event);
-                          setShowEditEvent(true);
-                        }}
-                      >
-                        <i className="fas fa-edit text-xs"></i>
-                      </Button>
+                    {isAdmin && (
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-gray-50"
+                          onClick={() => {
+                            setEditingEvent(event);
+                            setShowEditEvent(true);
+                          }}
+                          title="Edit event"
+                        >
+                          <i className="fas fa-edit text-xs text-gray-600"></i>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-red-50 border-red-200 hover:border-red-300"
+                          onClick={() => handleDeleteEvent(event.id, event.title)}
+                          disabled={deleteEventMutation.isPending}
+                          title="Delete event"
+                        >
+                          <i className="fas fa-trash text-xs text-red-600"></i>
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -263,7 +348,35 @@ export default function Events() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myEvents.map((event: any) => (
-                  <EventCard key={event.id} event={event} />
+                  <div key={event.id} className="relative">
+                    <EventCard event={event} />
+                    {isAdmin && (
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-gray-50"
+                          onClick={() => {
+                            setEditingEvent(event);
+                            setShowEditEvent(true);
+                          }}
+                          title="Edit event"
+                        >
+                          <i className="fas fa-edit text-xs text-gray-600"></i>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 bg-white hover:bg-red-50 border-red-200 hover:border-red-300"
+                          onClick={() => handleDeleteEvent(event.id, event.title)}
+                          disabled={deleteEventMutation.isPending}
+                          title="Delete event"
+                        >
+                          <i className="fas fa-trash text-xs text-red-600"></i>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
