@@ -170,6 +170,17 @@ export const featuredEvents = pgTable("featured_events", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Pledges table
+export const pledges = pgTable("pledges", {
+  id: serial("id").primaryKey(),
+  pledgerId: varchar("pledger_id").notNull().references(() => users.id),
+  eventId: integer("event_id").notNull().references(() => events.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  reference: varchar("reference"),
+  status: varchar("status", { enum: ["pending", "fulfilled", "cancelled"] }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),

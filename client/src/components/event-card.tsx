@@ -179,6 +179,7 @@ export default function EventCard({ event }: EventCardProps) {
         open={showDonationModal}
         onOpenChange={setShowDonationModal}
         eventTitle={event.title}
+        eventId={event.id}
         donationGoal={event.donationGoal ? parseFloat(event.donationGoal) : null}
         totalDonations={event.totalDonations}
       />

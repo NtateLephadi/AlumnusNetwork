@@ -22,10 +22,14 @@ export function DonationModal({
   open, 
   onOpenChange, 
   eventTitle, 
+  eventId,
   donationGoal, 
   totalDonations 
 }: DonationModalProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [pledgeAmount, setPledgeAmount] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const bankingDetails = {
     bankName: "First National Bank (FNB)",
@@ -34,6 +38,62 @@ export function DonationModal({
     branchCode: "250655",
     swiftCode: "FIRNZAJJ",
     reference: `Event-${eventTitle.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 20)}`
+  };
+
+  const pledgeMutation = useMutation({
+    mutationFn: async (amount: string) => {
+      await apiRequest("POST", "/api/pledges", {
+        eventId,
+        amount: parseFloat(amount),
+        reference: bankingDetails.reference
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pledge Recorded",
+        description: "Your pledge has been recorded and admins have been notified!",
+      });
+      setPledgeAmount("");
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to record pledge. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePledgeAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d.]/g, '');
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+      setPledgeAmount(value);
+    }
+  };
+
+  const handleSubmitPledge = () => {
+    if (!pledgeAmount || parseFloat(pledgeAmount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid pledge amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+    pledgeMutation.mutate(pledgeAmount);
   };
 
   const copyToClipboard = async (text: string, field: string) => {
@@ -59,6 +119,54 @@ export function DonationModal({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Pledge Amount Section */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h3 className="font-semibold text-blue-900 mb-3 flex items-center space-x-2">
+              <i className="fas fa-hand-holding-heart text-blue-600"></i>
+              <span>Make a Pledge</span>
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="pledgeAmount" className="text-blue-700">Pledge Amount (ZAR)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 font-medium">R</span>
+                  <Input
+                    id="pledgeAmount"
+                    value={pledgeAmount}
+                    onChange={handlePledgeAmountChange}
+                    placeholder="0.00"
+                    className="pl-8 border-blue-300 focus:border-blue-500"
+                  />
+                </div>
+                {pledgeAmount && (
+                  <p className="text-sm text-blue-600 mt-1">
+                    Pledge: R {parseFloat(pledgeAmount).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                )}
+              </div>
+              <Button
+                onClick={handleSubmitPledge}
+                disabled={!pledgeAmount || parseFloat(pledgeAmount) <= 0 || pledgeMutation.isPending}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {pledgeMutation.isPending ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Recording Pledge...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-handshake mr-2"></i>
+                    Record My Pledge
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-blue-600 text-center">
+                Admins will be notified of your pledge commitment
+              </p>
+            </div>
+          </div>
+
           {/* Event Info */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-2">{eventTitle}</h3>
