@@ -506,13 +506,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Pledge routes
   app.post('/api/pledges', isAuthenticated, isApprovedUser, async (req: any, res) => {
     try {
-      const pledgeData = insertPledgeSchema.parse(req.body);
       const userId = req.user.claims.sub;
       
-      const pledge = await storage.createPledge({
-        ...pledgeData,
+      const pledgeData = {
         pledgerId: userId,
-      });
+        eventId: req.body.eventId,
+        amount: req.body.amount.toString(), // Convert to string for decimal field
+        reference: req.body.reference || null,
+        status: "pending"
+      };
+      
+      const validatedData = insertPledgeSchema.parse(pledgeData);
+      const pledge = await storage.createPledge(validatedData);
       
       res.json(pledge);
     } catch (error) {
