@@ -267,6 +267,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Business Ventures routes
+  app.get('/api/users/:userId/business-ventures', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const ventures = await storage.getUserBusinessVentures(userId);
+      res.json(ventures);
+    } catch (error) {
+      console.error("Error fetching business ventures:", error);
+      res.status(500).json({ message: "Failed to fetch business ventures" });
+    }
+  });
+
+  app.post('/api/users/:userId/business-ventures', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      // Only allow users to add their own business ventures
+      if (userId !== currentUserId) {
+        return res.status(403).json({ message: "Can only manage your own business ventures" });
+      }
+
+      const ventureData = { ...req.body, userId };
+      const venture = await storage.addUserBusinessVenture(ventureData);
+      res.json(venture);
+    } catch (error) {
+      console.error("Error adding business venture:", error);
+      res.status(500).json({ message: "Failed to add business venture" });
+    }
+  });
+
+  app.put('/api/business-ventures/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const ventureId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's ventures to verify ownership
+      const userVentures = await storage.getUserBusinessVentures(currentUserId);
+      const userVentureRecord = userVentures.find(venture => venture.id === ventureId);
+      
+      if (!userVentureRecord) {
+        return res.status(403).json({ message: "Can only edit your own business ventures" });
+      }
+
+      const venture = await storage.updateUserBusinessVenture(ventureId, req.body);
+      res.json(venture);
+    } catch (error) {
+      console.error("Error updating business venture:", error);
+      res.status(500).json({ message: "Failed to update business venture" });
+    }
+  });
+
+  app.delete('/api/business-ventures/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const ventureId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's ventures to verify ownership
+      const userVentures = await storage.getUserBusinessVentures(currentUserId);
+      const userVentureRecord = userVentures.find(venture => venture.id === ventureId);
+      
+      if (!userVentureRecord) {
+        return res.status(403).json({ message: "Can only delete your own business ventures" });
+      }
+
+      await storage.deleteUserBusinessVenture(ventureId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting business venture:", error);
+      res.status(500).json({ message: "Failed to delete business venture" });
+    }
+  });
+
   // Posts routes (viewable by approved users)
   app.get('/api/posts', isAuthenticated, isApprovedUser, async (req, res) => {
     try {

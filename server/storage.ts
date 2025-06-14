@@ -856,6 +856,35 @@ export class DatabaseStorage implements IStorage {
   async deleteUserEducation(id: number): Promise<void> {
     await db.delete(userEducation).where(eq(userEducation.id, id));
   }
+
+  // Business Ventures operations
+  async getUserBusinessVentures(userId: string): Promise<UserBusinessVenture[]> {
+    return await db.select()
+      .from(userBusinessVentures)
+      .where(eq(userBusinessVentures.userId, userId))
+      .orderBy(desc(userBusinessVentures.startDate));
+  }
+
+  async addUserBusinessVenture(venture: InsertUserBusinessVenture): Promise<UserBusinessVenture> {
+    const [newVenture] = await db
+      .insert(userBusinessVentures)
+      .values(venture)
+      .returning();
+    return newVenture;
+  }
+
+  async updateUserBusinessVenture(id: number, venture: Partial<InsertUserBusinessVenture>): Promise<UserBusinessVenture> {
+    const [updatedVenture] = await db
+      .update(userBusinessVentures)
+      .set(venture)
+      .where(eq(userBusinessVentures.id, id))
+      .returning();
+    return updatedVenture;
+  }
+
+  async deleteUserBusinessVenture(id: number): Promise<void> {
+    await db.delete(userBusinessVentures).where(eq(userBusinessVentures.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();

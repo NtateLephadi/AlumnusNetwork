@@ -26,6 +26,8 @@ export default function Profile(props: any) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showEducationModal, setShowEducationModal] = useState(false);
   const [editingEducation, setEditingEducation] = useState<any>(null);
+  const [showVentureModal, setShowVentureModal] = useState(false);
+  const [editingVenture, setEditingVenture] = useState<any>(null);
 
   const isOwnProfile = !userId || userId === (currentUser as any)?.id;
   const profileUserId = userId || (currentUser as any)?.id;
@@ -52,6 +54,12 @@ export default function Profile(props: any) {
 
   const { data: userEducation = [], isLoading: isEducationLoading } = useQuery({
     queryKey: [`/api/users/${profileUserId}/education`],
+    enabled: isAuthenticated && !!profileUserId,
+    retry: false,
+  });
+
+  const { data: userBusinessVentures = [], isLoading: isVenturesLoading } = useQuery({
+    queryKey: [`/api/users/${profileUserId}/business-ventures`],
     enabled: isAuthenticated && !!profileUserId,
     retry: false,
   });
@@ -341,6 +349,102 @@ export default function Profile(props: any) {
   const openAddEducation = () => {
     setEditingEducation(null);
     setShowEducationModal(true);
+  };
+
+  const addVentureMutation = useMutation({
+    mutationFn: async (ventureData: any) => {
+      await apiRequest("POST", `/api/users/${profileUserId}/business-ventures`, ventureData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/business-ventures`] });
+      setShowVentureModal(false);
+      setEditingVenture(null);
+      toast({
+        title: "Success",
+        description: "Business venture added successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add business venture",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateVentureMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      await apiRequest("PUT", `/api/business-ventures/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/business-ventures`] });
+      setShowVentureModal(false);
+      setEditingVenture(null);
+      toast({
+        title: "Success",
+        description: "Business venture updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to update business venture",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteVentureMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/business-ventures/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/business-ventures`] });
+      toast({
+        title: "Success",
+        description: "Business venture deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete business venture",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleVentureSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      companyName: formData.get('companyName'),
+      role: formData.get('role'),
+      industry: formData.get('industry'),
+      startDate: formData.get('startDate') ? new Date(formData.get('startDate') as string) : null,
+      endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : null,
+      isCurrent: formData.get('isCurrent') === 'on',
+      description: formData.get('description'),
+      website: formData.get('website'),
+      location: formData.get('location'),
+    };
+
+    if (editingVenture) {
+      updateVentureMutation.mutate({ id: editingVenture.id, data });
+    } else {
+      addVentureMutation.mutate(data);
+    }
+  };
+
+  const openEditVenture = (venture: any) => {
+    setEditingVenture(venture);
+    setShowVentureModal(true);
+  };
+
+  const openAddVenture = () => {
+    setEditingVenture(null);
+    setShowVentureModal(true);
   };
 
   return (
@@ -745,6 +849,107 @@ export default function Profile(props: any) {
                 </CardContent>
               </Card>
 
+              {/* Business Ventures Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Business Ventures</CardTitle>
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openAddVenture}
+                    >
+                      <Building className="h-4 w-4 mr-2" />
+                      Add Venture
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isVenturesLoading ? (
+                    <div className="text-center py-4 text-gray-500">Loading business ventures...</div>
+                  ) : userBusinessVentures.length > 0 ? (
+                    <div className="space-y-4">
+                      {userBusinessVentures.map((venture: any) => (
+                        <div key={venture.id} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-gray-900">{venture.role}</h4>
+                                {venture.isCurrent && (
+                                  <Badge variant="secondary" className="text-xs">Current</Badge>
+                                )}
+                              </div>
+                              <p className="text-gray-700 font-medium">{venture.companyName}</p>
+                              {venture.industry && (
+                                <p className="text-sm text-gray-600">{venture.industry}</p>
+                              )}
+                              {venture.location && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {venture.location}
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-500 mt-1">
+                                {venture.startDate && venture.endDate 
+                                  ? `${new Date(venture.startDate).toLocaleDateString()} - ${new Date(venture.endDate).toLocaleDateString()}`
+                                  : venture.startDate 
+                                    ? `${new Date(venture.startDate).toLocaleDateString()} - Present`
+                                    : 'Dates not specified'
+                                }
+                              </p>
+                              {venture.description && (
+                                <p className="text-sm text-gray-600 mt-2">{venture.description}</p>
+                              )}
+                              {venture.website && (
+                                <a 
+                                  href={venture.website.startsWith('http') ? venture.website : `https://${venture.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
+                                >
+                                  Visit Website →
+                                </a>
+                              )}
+                            </div>
+                            {isOwnProfile && (
+                              <div className="flex space-x-2 ml-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditVenture(venture)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteVentureMutation.mutate(venture.id)}
+                                  disabled={deleteVentureMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      {isOwnProfile ? (
+                        <div>
+                          <Building className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                          <p>No business ventures added yet</p>
+                          <p className="text-sm mt-1">Add your entrepreneurial journey and business experience</p>
+                        </div>
+                      ) : (
+                        <p>No business ventures available</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Personal Interests */}
               <Card>
                 <CardHeader>
@@ -947,6 +1152,130 @@ export default function Profile(props: any) {
                 {(addEducationMutation.isPending || updateEducationMutation.isPending) 
                   ? "Saving..." 
                   : editingEducation 
+                    ? "Update" 
+                    : "Add"
+                }
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Business Venture Modal */}
+      <Dialog open={showVentureModal} onOpenChange={setShowVentureModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingVenture ? "Edit Business Venture" : "Add Business Venture"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleVentureSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="companyName">Company Name</Label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  defaultValue={editingVenture?.companyName || ""}
+                  placeholder="e.g., TechCorp Solutions"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="role">Your Role</Label>
+                <Input
+                  id="role"
+                  name="role"
+                  defaultValue={editingVenture?.role || ""}
+                  placeholder="e.g., Founder, CEO, Co-founder"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="industry">Industry</Label>
+                <Input
+                  id="industry"
+                  name="industry"
+                  defaultValue={editingVenture?.industry || ""}
+                  placeholder="e.g., Technology, Finance, Healthcare"
+                />
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  defaultValue={editingVenture?.location || ""}
+                  placeholder="e.g., Cape Town, South Africa"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    defaultValue={editingVenture?.startDate ? new Date(editingVenture.startDate).toISOString().split('T')[0] : ""}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    defaultValue={editingVenture?.endDate ? new Date(editingVenture.endDate).toISOString().split('T')[0] : ""}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="isCurrent"
+                  name="isCurrent"
+                  type="checkbox"
+                  defaultChecked={editingVenture?.isCurrent || false}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="isCurrent" className="text-sm font-normal">
+                  This is my current venture
+                </Label>
+              </div>
+              <div>
+                <Label htmlFor="website">Website (Optional)</Label>
+                <Input
+                  id="website"
+                  name="website"
+                  defaultValue={editingVenture?.website || ""}
+                  placeholder="e.g., www.company.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editingVenture?.description || ""}
+                  placeholder="Describe the business, your achievements, key projects..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowVentureModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={addVentureMutation.isPending || updateVentureMutation.isPending}
+              >
+                {(addVentureMutation.isPending || updateVentureMutation.isPending) 
+                  ? "Saving..." 
+                  : editingVenture 
                     ? "Update" 
                     : "Add"
                 }
