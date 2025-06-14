@@ -197,6 +197,22 @@ export const userBusinessVentures = pgTable("user_business_ventures", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Non-Profit Organizations table
+export const userNonprofits = pgTable("user_nonprofits", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  organizationName: varchar("organization_name").notNull(),
+  role: varchar("role").notNull(),
+  cause: varchar("cause"), // e.g., Education, Health, Environment
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  isCurrent: boolean("is_current").default(false),
+  description: text("description"),
+  website: varchar("website"),
+  location: varchar("location"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -210,6 +226,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   pledges: many(pledges),
   education: many(userEducation),
   businessVentures: many(userBusinessVentures),
+  nonprofits: many(userNonprofits),
 }));
 
 export const userEducationRelations = relations(userEducation, ({ one }) => ({
@@ -218,6 +235,10 @@ export const userEducationRelations = relations(userEducation, ({ one }) => ({
 
 export const userBusinessVenturesRelations = relations(userBusinessVentures, ({ one }) => ({
   user: one(users, { fields: [userBusinessVentures.userId], references: [users.id] }),
+}));
+
+export const userNonprofitsRelations = relations(userNonprofits, ({ one }) => ({
+  user: one(users, { fields: [userNonprofits.userId], references: [users.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -369,3 +390,6 @@ export type InsertUserEducation = typeof userEducation.$inferInsert;
 
 export type UserBusinessVenture = typeof userBusinessVentures.$inferSelect;
 export type InsertUserBusinessVenture = typeof userBusinessVentures.$inferInsert;
+
+export type UserNonprofit = typeof userNonprofits.$inferSelect;
+export type InsertUserNonprofit = typeof userNonprofits.$inferInsert;

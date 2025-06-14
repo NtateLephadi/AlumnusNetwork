@@ -14,6 +14,7 @@ import {
   communityExits,
   userEducation,
   userBusinessVentures,
+  userNonprofits,
   type User,
   type UpsertUser,
   type Post,
@@ -29,6 +30,7 @@ import {
   type Pledge,
   type UserEducation,
   type UserBusinessVenture,
+  type UserNonprofit,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
@@ -42,6 +44,7 @@ import {
   type InsertPledge,
   type InsertUserEducation,
   type InsertUserBusinessVenture,
+  type InsertUserNonprofit,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -75,6 +78,12 @@ export interface IStorage {
   addUserBusinessVenture(venture: InsertUserBusinessVenture): Promise<UserBusinessVenture>;
   updateUserBusinessVenture(id: number, venture: Partial<InsertUserBusinessVenture>): Promise<UserBusinessVenture>;
   deleteUserBusinessVenture(id: number): Promise<void>;
+  
+  // Non-Profit Organizations operations
+  getUserNonprofits(userId: string): Promise<UserNonprofit[]>;
+  addUserNonprofit(nonprofit: InsertUserNonprofit): Promise<UserNonprofit>;
+  updateUserNonprofit(id: number, nonprofit: Partial<InsertUserNonprofit>): Promise<UserNonprofit>;
+  deleteUserNonprofit(id: number): Promise<void>;
   
   // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;
@@ -884,6 +893,35 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUserBusinessVenture(id: number): Promise<void> {
     await db.delete(userBusinessVentures).where(eq(userBusinessVentures.id, id));
+  }
+
+  // Non-Profit Organizations operations
+  async getUserNonprofits(userId: string): Promise<UserNonprofit[]> {
+    return await db.select()
+      .from(userNonprofits)
+      .where(eq(userNonprofits.userId, userId))
+      .orderBy(desc(userNonprofits.startDate));
+  }
+
+  async addUserNonprofit(nonprofit: InsertUserNonprofit): Promise<UserNonprofit> {
+    const [newNonprofit] = await db
+      .insert(userNonprofits)
+      .values(nonprofit)
+      .returning();
+    return newNonprofit;
+  }
+
+  async updateUserNonprofit(id: number, nonprofit: Partial<InsertUserNonprofit>): Promise<UserNonprofit> {
+    const [updatedNonprofit] = await db
+      .update(userNonprofits)
+      .set(nonprofit)
+      .where(eq(userNonprofits.id, id))
+      .returning();
+    return updatedNonprofit;
+  }
+
+  async deleteUserNonprofit(id: number): Promise<void> {
+    await db.delete(userNonprofits).where(eq(userNonprofits.id, id));
   }
 }
 
