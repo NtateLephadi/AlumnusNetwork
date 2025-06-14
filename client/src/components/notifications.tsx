@@ -33,9 +33,7 @@ export function NotificationBell() {
 
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId: number) => 
-      apiRequest(`/api/notifications/${notificationId}/read`, {
-        method: 'PUT',
-      }),
+      apiRequest(`/api/notifications/${notificationId}/read`, 'PUT'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
@@ -43,9 +41,7 @@ export function NotificationBell() {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: () => 
-      apiRequest('/api/notifications/mark-all-read', {
-        method: 'PUT',
-      }),
+      apiRequest('/api/notifications/mark-all-read', 'PUT'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },

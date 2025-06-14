@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import uctScfLogo from "@assets/image_1749854348976.png";
+import { NotificationBell } from "@/components/notifications";
 
 export default function Navigation() {
   const { user } = useAuth();
@@ -56,10 +57,7 @@ export default function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-600 hover:text-uct-blue transition-colors relative">
-              <i className="fas fa-bell text-lg"></i>
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-uct-red rounded-full"></span>
-            </button>
+            {user && (user as any).status === 'approved' && <NotificationBell />}
             <a 
               href="/profile" 
               className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-uct-blue transition-all"
