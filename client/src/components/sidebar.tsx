@@ -14,7 +14,17 @@ export default function Sidebar() {
     queryKey: ["/api/stats"],
   });
 
-  const bankDetails = {
+  const { data: activeBankingDetails } = useQuery({
+    queryKey: ["/api/banking-details/active"],
+  });
+
+  const bankDetails = activeBankingDetails ? {
+    bankName: activeBankingDetails.bankName,
+    accountHolder: activeBankingDetails.accountName,
+    accountNumber: activeBankingDetails.accountNumber,
+    branchCode: activeBankingDetails.branchCode,
+    reference: activeBankingDetails.reference
+  } : {
     bankName: "First National Bank",
     accountHolder: "UCT SCF Alumni Fund",
     accountNumber: "1234567890",

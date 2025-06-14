@@ -60,7 +60,12 @@ export default function Donations() {
     }
   };
 
-  const bankingDetails = {
+  const { data: activeBankingDetails } = useQuery({
+    queryKey: ["/api/banking-details/active"],
+    enabled: isAuthenticated && isApproved,
+  });
+
+  const bankingDetails = activeBankingDetails || {
     bankName: "First National Bank (FNB)",
     accountName: "UCT Student Christian Fellowship Alumni",
     accountNumber: "62847291038",
