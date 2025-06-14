@@ -158,7 +158,22 @@ export default function Events() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEvents.map((event: any) => (
-                  <EventCard key={event.id} event={event} />
+                  <div key={event.id} className="relative">
+                    <EventCard event={event} />
+                    {isAdmin && event.donationGoal && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="absolute top-2 right-2 h-8 w-8 p-0"
+                        onClick={() => {
+                          setEditingEvent(event);
+                          setShowEditEvent(true);
+                        }}
+                      >
+                        <i className="fas fa-edit text-xs"></i>
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -178,7 +193,22 @@ export default function Events() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingEvents.map((event: any) => (
-                  <EventCard key={event.id} event={event} />
+                  <div key={event.id} className="relative">
+                    <EventCard event={event} />
+                    {isAdmin && event.donationGoal && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="absolute top-2 right-2 h-8 w-8 p-0"
+                        onClick={() => {
+                          setEditingEvent(event);
+                          setShowEditEvent(true);
+                        }}
+                      >
+                        <i className="fas fa-edit text-xs"></i>
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -198,7 +228,22 @@ export default function Events() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pastEvents.map((event: any) => (
-                  <EventCard key={event.id} event={event} />
+                  <div key={event.id} className="relative">
+                    <EventCard event={event} />
+                    {isAdmin && event.donationGoal && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="absolute top-2 right-2 h-8 w-8 p-0"
+                        onClick={() => {
+                          setEditingEvent(event);
+                          setShowEditEvent(true);
+                        }}
+                      >
+                        <i className="fas fa-edit text-xs"></i>
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -229,6 +274,12 @@ export default function Events() {
       <CreateEventModal
         open={showCreateEvent}
         onOpenChange={setShowCreateEvent}
+      />
+      
+      <EditEventModal
+        open={showEditEvent}
+        onOpenChange={setShowEditEvent}
+        event={editingEvent}
       />
     </div>
   );

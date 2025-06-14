@@ -40,12 +40,12 @@ export function DonationModal({
   });
 
   const bankingDetails = activeBankingDetails ? {
-    bankName: activeBankingDetails.bankName,
-    accountName: activeBankingDetails.accountName,
-    accountNumber: activeBankingDetails.accountNumber,
-    branchCode: activeBankingDetails.branchCode,
-    swiftCode: activeBankingDetails.swiftCode,
-    reference: paymentReference || activeBankingDetails.reference
+    bankName: (activeBankingDetails as any).bankName,
+    accountName: (activeBankingDetails as any).accountName,
+    accountNumber: (activeBankingDetails as any).accountNumber,
+    branchCode: (activeBankingDetails as any).branchCode,
+    swiftCode: (activeBankingDetails as any).swiftCode,
+    reference: paymentReference || (activeBankingDetails as any).reference
   } : {
     bankName: "First National Bank (FNB)",
     accountName: "UCT Student Christian Fellowship Alumni",
