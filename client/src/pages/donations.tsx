@@ -5,6 +5,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/navigation";
 import Sidebar from "@/components/sidebar";
 import MobileNav from "@/components/mobile-nav";
+import { DonationModal } from "@/components/donation-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +13,8 @@ import { useQuery } from "@tanstack/react-query";
 export default function Donations() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showDonationModal, setShowDonationModal] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -277,7 +280,15 @@ export default function Donations() {
                           )}
                         </div>
                         <div className="mt-3">
-                          <Button variant="outline" size="sm" className="w-full text-uct-blue border-uct-blue hover:bg-uct-blue hover:text-white">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full text-uct-blue border-uct-blue hover:bg-uct-blue hover:text-white"
+                            onClick={() => {
+                              setSelectedEvent(event);
+                              setShowDonationModal(true);
+                            }}
+                          >
                             <i className="fas fa-heart mr-2"></i>
                             Donate to Event
                           </Button>
@@ -331,6 +342,20 @@ export default function Donations() {
 
       {/* Mobile Navigation */}
       <MobileNav />
+
+      {/* Donation Modal */}
+      {selectedEvent && (
+        <DonationModal
+          open={showDonationModal}
+          onOpenChange={setShowDonationModal}
+          eventTitle={selectedEvent.title}
+          eventId={selectedEvent.id}
+          donationGoal={selectedEvent.donationGoal ? parseFloat(selectedEvent.donationGoal) : null}
+          totalDonations={selectedEvent.totalDonations || 0}
+          totalPledges={selectedEvent.totalPledges || 0}
+          paymentReference={selectedEvent.paymentReference}
+        />
+      )}
     </div>
   );
 }
