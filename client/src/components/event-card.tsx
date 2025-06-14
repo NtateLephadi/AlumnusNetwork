@@ -7,6 +7,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { DonationModal } from "@/components/donation-modal";
 
 interface EventCardProps {
   event: {
@@ -31,6 +32,7 @@ interface EventCardProps {
 
 export default function EventCard({ event }: EventCardProps) {
   const [rsvpStatus, setRsvpStatus] = useState<string | null>(null);
+  const [showDonationModal, setShowDonationModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -161,7 +163,10 @@ export default function EventCard({ event }: EventCardProps) {
             <i className="fas fa-check mr-2"></i>
             {rsvpStatus === "attending" ? "Attending" : "RSVP"}
           </Button>
-          <Button className="flex-1 bg-uct-gold hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+          <Button 
+            className="flex-1 bg-uct-gold hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            onClick={() => setShowDonationModal(true)}
+          >
             <i className="fas fa-heart mr-2"></i>Donate
           </Button>
           <Button variant="outline" size="icon">
