@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -55,10 +56,12 @@ export default function Sidebar() {
             <i className="fas fa-heart mr-2"></i>
             Make a Donation
           </Button>
-          <Button variant="outline" className="w-full">
-            <i className="fas fa-calendar text-uct-blue mr-2"></i>
-            Browse Events
-          </Button>
+          <Link href="/events">
+            <Button variant="outline" className="w-full">
+              <i className="fas fa-calendar text-uct-blue mr-2"></i>
+              Browse Events
+            </Button>
+          </Link>
           <Button variant="outline" className="w-full">
             <i className="fas fa-user-edit text-uct-blue mr-2"></i>
             Update Profile
