@@ -9,11 +9,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function AdminUsers() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
-  const [selectedTab, setSelectedTab] = useState<"pending" | "all">("pending");
+  const [selectedTab, setSelectedTab] = useState<"pending" | "all" | "banking">("pending");
+  const [showBankingDialog, setShowBankingDialog] = useState(false);
+  const [editingBanking, setEditingBanking] = useState<any>(null);
+  const [bankingForm, setBankingForm] = useState({
+    bankName: "",
+    accountName: "",
+    accountNumber: "",
+    branchCode: "",
+    swiftCode: "",
+    reference: "",
+    isActive: true
+  });
 
   // Redirect to home if not authenticated or not admin
   useEffect(() => {
@@ -32,6 +46,12 @@ export default function AdminUsers() {
   const { data: pendingUsers, isLoading: loadingPending } = useQuery({
     queryKey: ["/api/admin/pending-users"],
     enabled: isAuthenticated && !!(user as any)?.isAdmin,
+    retry: false,
+  });
+
+  const { data: bankingDetails = [], isLoading: loadingBanking } = useQuery({
+    queryKey: ["/api/admin/banking-details"],
+    enabled: isAuthenticated && !!(user as any)?.isAdmin && selectedTab === "banking",
     retry: false,
   });
 
@@ -128,6 +148,179 @@ export default function AdminUsers() {
     },
   });
 
+  // Banking details mutations
+  const createBankingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      await apiRequest('/api/admin/banking-details', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
+      setShowBankingDialog(false);
+      setBankingForm({
+        bankName: "",
+        accountName: "",
+        accountNumber: "",
+        branchCode: "",
+        swiftCode: "",
+        reference: "",
+        isActive: true
+      });
+      toast({
+        title: "Success",
+        description: "Banking details created successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Admin session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create banking details",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateBankingMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      await apiRequest(`/api/admin/banking-details/${id}`, 'PUT', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
+      setShowBankingDialog(false);
+      setEditingBanking(null);
+      toast({
+        title: "Success",
+        description: "Banking details updated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Admin session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update banking details",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteBankingMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest(`/api/admin/banking-details/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
+      toast({
+        title: "Success",
+        description: "Banking details deleted successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Admin session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete banking details",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const activateBankingMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest(`/api/admin/banking-details/${id}/activate`, 'PUT');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
+      toast({
+        title: "Success",
+        description: "Banking details activated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "Admin session expired. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to activate banking details",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleBankingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingBanking) {
+      updateBankingMutation.mutate({ id: editingBanking.id, data: bankingForm });
+    } else {
+      createBankingMutation.mutate(bankingForm);
+    }
+  };
+
+  const openBankingDialog = (banking?: any) => {
+    if (banking) {
+      setEditingBanking(banking);
+      setBankingForm({
+        bankName: banking.bankName || "",
+        accountName: banking.accountName || "",
+        accountNumber: banking.accountNumber || "",
+        branchCode: banking.branchCode || "",
+        swiftCode: banking.swiftCode || "",
+        reference: banking.reference || "",
+        isActive: banking.isActive || false
+      });
+    } else {
+      setEditingBanking(null);
+      setBankingForm({
+        bankName: "",
+        accountName: "",
+        accountNumber: "",
+        branchCode: "",
+        swiftCode: "",
+        reference: "",
+        isActive: true
+      });
+    }
+    setShowBankingDialog(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -187,6 +380,16 @@ export default function AdminUsers() {
                 }`}
               >
                 All Users
+              </button>
+              <button
+                onClick={() => setSelectedTab("banking")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  selectedTab === "banking"
+                    ? "border-uct-blue text-uct-blue"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Banking Details ({(bankingDetails as any[])?.length || 0})
               </button>
             </nav>
           </div>
@@ -313,6 +516,225 @@ export default function AdminUsers() {
                 <p className="text-gray-600">All users view coming soon...</p>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {/* Banking Details Tab */}
+        {selectedTab === "banking" && (
+          <div>
+            <div className="mb-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">
+                  Banking Details Management
+                </h2>
+                <p className="text-gray-600">
+                  Manage banking details for donations and payments.
+                </p>
+              </div>
+              <Button 
+                onClick={() => openBankingDialog()}
+                className="bg-uct-blue hover:bg-blue-700 text-white"
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Add Banking Details
+              </Button>
+            </div>
+
+            {loadingBanking ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-uct-blue mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading banking details...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {(bankingDetails as any[])?.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <i className="fas fa-university text-4xl text-gray-400 mb-4"></i>
+                      <p className="text-gray-600 mb-4">No banking details found</p>
+                      <Button 
+                        onClick={() => openBankingDialog()}
+                        className="bg-uct-blue hover:bg-blue-700 text-white"
+                      >
+                        Add First Banking Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  (bankingDetails as any[])?.map((banking: any) => (
+                    <Card key={banking.id} className={`${banking.isActive ? 'ring-2 ring-green-500' : ''}`}>
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium text-gray-600">Bank Name</Label>
+                              <p className="text-gray-900 font-semibold">{banking.bankName}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-600">Account Name</Label>
+                              <p className="text-gray-900 font-semibold">{banking.accountName}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-600">Account Number</Label>
+                              <p className="text-gray-900 font-mono">{banking.accountNumber}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-600">Branch Code</Label>
+                              <p className="text-gray-900 font-mono">{banking.branchCode}</p>
+                            </div>
+                            {banking.swiftCode && (
+                              <div>
+                                <Label className="text-sm font-medium text-gray-600">SWIFT Code</Label>
+                                <p className="text-gray-900 font-mono">{banking.swiftCode}</p>
+                              </div>
+                            )}
+                            <div>
+                              <Label className="text-sm font-medium text-gray-600">Reference</Label>
+                              <p className="text-gray-900">{banking.reference}</p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end space-y-2 ml-4">
+                            {banking.isActive && (
+                              <Badge className="bg-green-100 text-green-800 border-green-200">
+                                Active
+                              </Badge>
+                            )}
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openBankingDialog(banking)}
+                              >
+                                <i className="fas fa-edit mr-1"></i>
+                                Edit
+                              </Button>
+                              {!banking.isActive && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => activateBankingMutation.mutate(banking.id)}
+                                  disabled={activateBankingMutation.isPending}
+                                >
+                                  <i className="fas fa-check mr-1"></i>
+                                  Activate
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete these banking details?')) {
+                                    deleteBankingMutation.mutate(banking.id);
+                                  }
+                                }}
+                                disabled={deleteBankingMutation.isPending}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <i className="fas fa-trash mr-1"></i>
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Banking Details Dialog */}
+            <Dialog open={showBankingDialog} onOpenChange={setShowBankingDialog}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingBanking ? 'Edit Banking Details' : 'Add Banking Details'}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleBankingSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      value={bankingForm.bankName}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, bankName: e.target.value }))}
+                      placeholder="e.g., First National Bank"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountName">Account Name</Label>
+                    <Input
+                      id="accountName"
+                      value={bankingForm.accountName}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, accountName: e.target.value }))}
+                      placeholder="e.g., UCT SCF Alumni Fund"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountNumber">Account Number</Label>
+                    <Input
+                      id="accountNumber"
+                      value={bankingForm.accountNumber}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      placeholder="e.g., 1234567890"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="branchCode">Branch Code</Label>
+                    <Input
+                      id="branchCode"
+                      value={bankingForm.branchCode}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, branchCode: e.target.value }))}
+                      placeholder="e.g., 250655"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="swiftCode">SWIFT Code (Optional)</Label>
+                    <Input
+                      id="swiftCode"
+                      value={bankingForm.swiftCode}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, swiftCode: e.target.value }))}
+                      placeholder="e.g., FIRNZAJJ"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="reference">Reference</Label>
+                    <Input
+                      id="reference"
+                      value={bankingForm.reference}
+                      onChange={(e) => setBankingForm(prev => ({ ...prev, reference: e.target.value }))}
+                      placeholder="e.g., Alumni-General-Support"
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowBankingDialog(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-uct-blue hover:bg-blue-700 text-white"
+                      disabled={createBankingMutation.isPending || updateBankingMutation.isPending}
+                    >
+                      {(createBankingMutation.isPending || updateBankingMutation.isPending) ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ) : null}
+                      {editingBanking ? 'Update' : 'Create'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
