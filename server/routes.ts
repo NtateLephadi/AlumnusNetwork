@@ -13,6 +13,7 @@ import {
   insertPollVoteSchema,
   insertFeaturedEventSchema,
   insertPledgeSchema,
+  insertBankingDetailsSchema,
   userEducation
 } from "@shared/schema";
 import { db } from "./db";
@@ -793,6 +794,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching event pledges:", error);
       res.status(500).json({ message: "Failed to fetch event pledges" });
+    }
+  });
+
+  // Banking details routes (admin-only)
+  app.get('/api/admin/banking-details', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const bankingDetails = await storage.getBankingDetails();
+      res.json(bankingDetails);
+    } catch (error) {
+      console.error("Error fetching banking details:", error);
+      res.status(500).json({ message: "Failed to fetch banking details" });
+    }
+  });
+
+  app.get('/api/banking-details/active', async (req, res) => {
+    try {
+      const activeBankingDetails = await storage.getActiveBankingDetails();
+      res.json(activeBankingDetails);
+    } catch (error) {
+      console.error("Error fetching active banking details:", error);
+      res.status(500).json({ message: "Failed to fetch active banking details" });
+    }
+  });
+
+  app.post('/api/admin/banking-details', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const bankingData = insertBankingDetailsSchema.parse(req.body);
+      const bankingDetails = await storage.createBankingDetails(bankingData);
+      res.json(bankingDetails);
+    } catch (error) {
+      console.error("Error creating banking details:", error);
+      res.status(500).json({ message: "Failed to create banking details" });
+    }
+  });
+
+  app.put('/api/admin/banking-details/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = insertBankingDetailsSchema.partial().parse(req.body);
+      const bankingDetails = await storage.updateBankingDetails(id, updateData);
+      res.json(bankingDetails);
+    } catch (error) {
+      console.error("Error updating banking details:", error);
+      res.status(500).json({ message: "Failed to update banking details" });
+    }
+  });
+
+  app.delete('/api/admin/banking-details/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteBankingDetails(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting banking details:", error);
+      res.status(500).json({ message: "Failed to delete banking details" });
+    }
+  });
+
+  app.put('/api/admin/banking-details/:id/activate', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.setActiveBankingDetails(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error activating banking details:", error);
+      res.status(500).json({ message: "Failed to activate banking details" });
     }
   });
 

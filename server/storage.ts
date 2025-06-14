@@ -130,6 +130,14 @@ export interface IStorage {
   createPledge(pledge: InsertPledge): Promise<Pledge>;
   getEventPledges(eventId: number): Promise<(Pledge & { pledger: User })[]>;
   
+  // Banking details operations (admin-only)
+  getBankingDetails(): Promise<BankingDetails[]>;
+  getActiveBankingDetails(): Promise<BankingDetails | undefined>;
+  createBankingDetails(details: InsertBankingDetails): Promise<BankingDetails>;
+  updateBankingDetails(id: number, details: Partial<InsertBankingDetails>): Promise<BankingDetails>;
+  deleteBankingDetails(id: number): Promise<void>;
+  setActiveBankingDetails(id: number): Promise<void>;
+  
   // Stats
   getStats(): Promise<{
     totalAlumni: number;
@@ -925,6 +933,55 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUserNonprofit(id: number): Promise<void> {
     await db.delete(userNonprofits).where(eq(userNonprofits.id, id));
+  }
+
+  // Banking details operations (admin-only)
+  async getBankingDetails(): Promise<BankingDetails[]> {
+    return await db.select()
+      .from(bankingDetails)
+      .orderBy(desc(bankingDetails.createdAt));
+  }
+
+  async getActiveBankingDetails(): Promise<BankingDetails | undefined> {
+    const [details] = await db.select()
+      .from(bankingDetails)
+      .where(eq(bankingDetails.isActive, true))
+      .limit(1);
+    return details;
+  }
+
+  async createBankingDetails(details: InsertBankingDetails): Promise<BankingDetails> {
+    const [newDetails] = await db
+      .insert(bankingDetails)
+      .values(details)
+      .returning();
+    return newDetails;
+  }
+
+  async updateBankingDetails(id: number, details: Partial<InsertBankingDetails>): Promise<BankingDetails> {
+    const [updatedDetails] = await db
+      .update(bankingDetails)
+      .set({ ...details, updatedAt: new Date() })
+      .where(eq(bankingDetails.id, id))
+      .returning();
+    return updatedDetails;
+  }
+
+  async deleteBankingDetails(id: number): Promise<void> {
+    await db.delete(bankingDetails).where(eq(bankingDetails.id, id));
+  }
+
+  async setActiveBankingDetails(id: number): Promise<void> {
+    // First, set all banking details to inactive
+    await db
+      .update(bankingDetails)
+      .set({ isActive: false, updatedAt: new Date() });
+    
+    // Then set the specified one to active
+    await db
+      .update(bankingDetails)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(eq(bankingDetails.id, id));
   }
 }
 
