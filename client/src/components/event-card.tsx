@@ -174,6 +174,14 @@ export default function EventCard({ event }: EventCardProps) {
           </Button>
         </div>
       </div>
+      
+      <DonationModal
+        open={showDonationModal}
+        onOpenChange={setShowDonationModal}
+        eventTitle={event.title}
+        donationGoal={event.donationGoal}
+        totalDonations={event.totalDonations}
+      />
     </div>
   );
 }
