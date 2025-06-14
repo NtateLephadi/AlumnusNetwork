@@ -64,12 +64,14 @@ export default function Sidebar() {
               </Button>
             </Link>
           </div>
-          <Link href="/profile">
-            <Button variant="outline" className="w-full justify-start px-4 py-3">
-              <i className="fas fa-user-edit text-uct-blue mr-3 w-4 text-center"></i>
-              Update Profile
-            </Button>
-          </Link>
+          <div className="pt-1">
+            <Link href="/profile">
+              <Button variant="outline" className="w-full justify-start px-4 py-3">
+                <i className="fas fa-user-edit text-uct-blue mr-3 w-4 text-center"></i>
+                Update Profile
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
