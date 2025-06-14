@@ -47,7 +47,7 @@ export default function Profile(props: any) {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
-      await apiRequest(`/api/users/${profileUserId}`, "PUT", profileData);
+      await apiRequest("PUT", `/api/users/${profileUserId}`, profileData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", profileUserId] });
