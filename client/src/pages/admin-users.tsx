@@ -151,7 +151,7 @@ export default function AdminUsers() {
   // Banking details mutations
   const createBankingMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest('/api/admin/banking-details', 'POST', data);
+      await apiRequest('POST', '/api/admin/banking-details', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
@@ -192,7 +192,7 @@ export default function AdminUsers() {
 
   const updateBankingMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      await apiRequest(`/api/admin/banking-details/${id}`, 'PUT', data);
+      await apiRequest('PUT', `/api/admin/banking-details/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
@@ -226,7 +226,7 @@ export default function AdminUsers() {
 
   const deleteBankingMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/admin/banking-details/${id}`, 'DELETE');
+      await apiRequest('DELETE', `/api/admin/banking-details/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
@@ -257,7 +257,7 @@ export default function AdminUsers() {
 
   const activateBankingMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/admin/banking-details/${id}/activate`, 'PUT');
+      await apiRequest('PUT', `/api/admin/banking-details/${id}/activate`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/banking-details"] });
