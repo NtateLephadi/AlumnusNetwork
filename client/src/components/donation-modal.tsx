@@ -131,16 +131,16 @@ export function DonationModal({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Pledge Amount Section */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-900 mb-3 flex items-center space-x-2">
+          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <h3 className="font-semibold text-blue-900 mb-2 flex items-center space-x-2">
               <i className="fas fa-hand-holding-heart text-blue-600"></i>
               <span>Make a Pledge</span>
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div>
-                <Label htmlFor="pledgeAmount" className="text-blue-700">Pledge Amount (ZAR)</Label>
+                <Label htmlFor="pledgeAmount" className="text-blue-700 text-sm">Pledge Amount (ZAR)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 font-medium">R</span>
                   <Input
@@ -151,11 +151,6 @@ export function DonationModal({
                     className="pl-8 border-blue-300 focus:border-blue-500"
                   />
                 </div>
-                {pledgeAmount && (
-                  <p className="text-sm text-blue-600 mt-1">
-                    Pledge: R {parseFloat(pledgeAmount).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                )}
               </div>
               <Button
                 onClick={handleSubmitPledge}
@@ -180,133 +175,110 @@ export function DonationModal({
             </div>
           </div>
 
-          {/* Event Info */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">{eventTitle}</h3>
-            {donationGoal && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Raised: R{totalDonations.toLocaleString()}</span>
-                  <span>Goal: R{donationGoal.toLocaleString()}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-uct-gold h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${donationProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-600">
-                  {Math.round(donationProgress)}% of goal reached
-                </p>
-              </div>
-            )}
-          </div>
-
           {/* Banking Details */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
+          <div className="space-y-3">
+            <h4 className="font-semibold text-gray-900 flex items-center space-x-2 text-sm">
               <i className="fas fa-university text-uct-blue"></i>
               <span>Banking Details</span>
             </h4>
             
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-xs">
               {/* Bank Name */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Bank</p>
-                  <p className="text-gray-900">{bankingDetails.bankName}</p>
+                  <p className="text-xs font-medium text-gray-600">Bank</p>
+                  <p className="text-gray-900 text-xs">{bankingDetails.bankName}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(bankingDetails.bankName, 'bank')}
-                  className="ml-2"
+                  className="h-6 w-6 p-0"
                 >
                   {copiedField === 'bank' ? (
-                    <i className="fas fa-check text-green-600"></i>
+                    <i className="fas fa-check text-green-600 text-xs"></i>
                   ) : (
-                    <i className="fas fa-copy"></i>
+                    <i className="fas fa-copy text-xs"></i>
                   )}
                 </Button>
               </div>
 
               {/* Account Name */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Account Name</p>
-                  <p className="text-gray-900">{bankingDetails.accountName}</p>
+                  <p className="text-xs font-medium text-gray-600">Account Name</p>
+                  <p className="text-gray-900 text-xs">{bankingDetails.accountName}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(bankingDetails.accountName, 'name')}
-                  className="ml-2"
+                  className="h-6 w-6 p-0"
                 >
                   {copiedField === 'name' ? (
-                    <i className="fas fa-check text-green-600"></i>
+                    <i className="fas fa-check text-green-600 text-xs"></i>
                   ) : (
-                    <i className="fas fa-copy"></i>
+                    <i className="fas fa-copy text-xs"></i>
                   )}
                 </Button>
               </div>
 
               {/* Account Number */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Account Number</p>
-                  <p className="text-gray-900 font-mono text-lg">{bankingDetails.accountNumber}</p>
+                  <p className="text-xs font-medium text-gray-600">Account Number</p>
+                  <p className="text-gray-900 font-mono text-xs">{bankingDetails.accountNumber}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(bankingDetails.accountNumber, 'account')}
-                  className="ml-2"
+                  className="h-6 w-6 p-0"
                 >
                   {copiedField === 'account' ? (
-                    <i className="fas fa-check text-green-600"></i>
+                    <i className="fas fa-check text-green-600 text-xs"></i>
                   ) : (
-                    <i className="fas fa-copy"></i>
+                    <i className="fas fa-copy text-xs"></i>
                   )}
                 </Button>
               </div>
 
               {/* Branch Code */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Branch Code</p>
-                  <p className="text-gray-900 font-mono">{bankingDetails.branchCode}</p>
+                  <p className="text-xs font-medium text-gray-600">Branch Code</p>
+                  <p className="text-gray-900 font-mono text-xs">{bankingDetails.branchCode}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(bankingDetails.branchCode, 'branch')}
-                  className="ml-2"
+                  className="h-6 w-6 p-0"
                 >
                   {copiedField === 'branch' ? (
-                    <i className="fas fa-check text-green-600"></i>
+                    <i className="fas fa-check text-green-600 text-xs"></i>
                   ) : (
-                    <i className="fas fa-copy"></i>
+                    <i className="fas fa-copy text-xs"></i>
                   )}
                 </Button>
               </div>
 
               {/* Reference */}
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="col-span-2 flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200">
                 <div>
-                  <p className="text-sm font-medium text-blue-700">Payment Reference</p>
-                  <p className="text-blue-900 font-mono">{bankingDetails.reference}</p>
-                  <p className="text-xs text-blue-600 mt-1">Please use this reference for tracking</p>
+                  <p className="text-xs font-medium text-blue-700">Payment Reference</p>
+                  <p className="text-blue-900 font-mono text-xs">{bankingDetails.reference}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(bankingDetails.reference, 'reference')}
-                  className="ml-2 border-blue-300 text-blue-700 hover:bg-blue-100"
+                  className="h-6 w-6 p-0 border-blue-300 text-blue-700 hover:bg-blue-100"
                 >
                   {copiedField === 'reference' ? (
-                    <i className="fas fa-check text-green-600"></i>
+                    <i className="fas fa-check text-green-600 text-xs"></i>
                   ) : (
-                    <i className="fas fa-copy"></i>
+                    <i className="fas fa-copy text-xs"></i>
                   )}
                 </Button>
               </div>
