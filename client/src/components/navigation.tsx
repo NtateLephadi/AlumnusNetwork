@@ -23,7 +23,7 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-6">
             <a href="/" className="text-uct-blue font-medium border-b-2 border-uct-blue pb-4">Dashboard</a>
             <a href="/events" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Events</a>
-            <a href="#donations" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Donations</a>
+            <a href="/donations" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Donations</a>
             {(user as any)?.isAdmin && (
               <a href="/admin/users" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">
                 <i className="fas fa-users mr-2"></i>User Management
