@@ -33,7 +33,7 @@ export function NotificationBell() {
 
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId: number) => 
-      apiRequest(`/api/notifications/${notificationId}/read`, 'PUT'),
+      apiRequest('PUT', `/api/notifications/${notificationId}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
@@ -41,7 +41,7 @@ export function NotificationBell() {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: () => 
-      apiRequest('/api/notifications/mark-all-read', 'PUT'),
+      apiRequest('PUT', '/api/notifications/mark-all-read'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
@@ -49,7 +49,7 @@ export function NotificationBell() {
 
   const deleteNotificationMutation = useMutation({
     mutationFn: (notificationId: number) => 
-      apiRequest(`/api/notifications/${notificationId}`, 'DELETE'),
+      apiRequest('DELETE', `/api/notifications/${notificationId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
@@ -57,7 +57,7 @@ export function NotificationBell() {
 
   const deleteAllNotificationsMutation = useMutation({
     mutationFn: () => 
-      apiRequest('/api/notifications', 'DELETE'),
+      apiRequest('DELETE', '/api/notifications'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
