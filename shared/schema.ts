@@ -71,6 +71,17 @@ export const communityExits = pgTable("community_exits", {
   exitedAt: timestamp("exited_at").defaultNow(),
 });
 
+// User notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { enum: ["event_deleted", "event_updated", "general"] }).default("general"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Posts/Notifications table
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
@@ -237,6 +248,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   donations: many(donations),
   postLikes: many(postLikes),
   postComments: many(postComments),
+  notifications: many(notifications),
   polls: many(polls),
   pollVotes: many(pollVotes),
   pledges: many(pledges),
@@ -316,6 +328,10 @@ export const pledgesRelations = relations(pledges, ({ one }) => ({
   event: one(events, { fields: [pledges.eventId], references: [events.id] }),
 }));
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
 // Insert schemas
 export const insertPostSchema = createInsertSchema(posts).omit({
   id: true,
@@ -380,6 +396,11 @@ export const insertBankingDetailsSchema = createInsertSchema(bankingDetails).omi
   updatedAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -418,3 +439,6 @@ export type InsertUserNonprofit = typeof userNonprofits.$inferInsert;
 
 export type BankingDetails = typeof bankingDetails.$inferSelect;
 export type InsertBankingDetails = z.infer<typeof insertBankingDetailsSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

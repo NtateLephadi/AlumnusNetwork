@@ -16,6 +16,7 @@ import {
   userBusinessVentures,
   userNonprofits,
   bankingDetails,
+  notifications,
   type User,
   type UpsertUser,
   type Post,
@@ -32,6 +33,7 @@ import {
   type UserEducation,
   type UserBusinessVenture,
   type UserNonprofit,
+  type Notification,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
@@ -46,6 +48,7 @@ import {
   type InsertUserEducation,
   type InsertUserBusinessVenture,
   type InsertUserNonprofit,
+  type InsertNotification,
   type BankingDetails,
   type InsertBankingDetails,
 } from "@shared/schema";
