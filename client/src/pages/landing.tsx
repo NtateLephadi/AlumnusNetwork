@@ -4,7 +4,7 @@ import uctScfLogo from "@assets/image_1749854348976.png";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-uct-blue to-blue-700 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-uct-blue flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="pt-6">
           <div className="text-center space-y-6">
