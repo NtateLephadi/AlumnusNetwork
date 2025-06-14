@@ -1,9 +1,11 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "wouter";
 import uctScfLogo from "@assets/image_1749854348976.png";
 
 export default function Navigation() {
   const { user } = useAuth();
+  const [location] = useLocation();
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -21,13 +23,35 @@ export default function Navigation() {
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
-            <a href="/" className="text-uct-blue font-medium border-b-2 border-uct-blue pb-4">Dashboard</a>
-            <a href="/events" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Events</a>
-            <a href="/donations" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">Donations</a>
+            <Link href="/" className={`font-medium pb-4 transition-colors ${
+              location === "/" 
+                ? "text-uct-blue border-b-2 border-uct-blue" 
+                : "text-gray-600 hover:text-uct-blue"
+            }`}>
+              Dashboard
+            </Link>
+            <Link href="/events" className={`font-medium pb-4 transition-colors ${
+              location === "/events" 
+                ? "text-uct-blue border-b-2 border-uct-blue" 
+                : "text-gray-600 hover:text-uct-blue"
+            }`}>
+              Events
+            </Link>
+            <Link href="/donations" className={`font-medium pb-4 transition-colors ${
+              location === "/donations" 
+                ? "text-uct-blue border-b-2 border-uct-blue" 
+                : "text-gray-600 hover:text-uct-blue"
+            }`}>
+              Donations
+            </Link>
             {(user as any)?.isAdmin && (
-              <a href="/admin/users" className="text-gray-600 hover:text-uct-blue transition-colors pb-4">
+              <Link href="/admin/users" className={`font-medium pb-4 transition-colors ${
+                location === "/admin/users" 
+                  ? "text-uct-blue border-b-2 border-uct-blue" 
+                  : "text-gray-600 hover:text-uct-blue"
+              }`}>
                 <i className="fas fa-users mr-2"></i>User Management
-              </a>
+              </Link>
             )}
           </div>
 
