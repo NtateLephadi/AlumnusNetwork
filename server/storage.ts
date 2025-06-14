@@ -10,6 +10,7 @@ import {
   pollOptions,
   pollVotes,
   featuredEvents,
+  pledges,
   communityExits,
   type User,
   type UpsertUser,
@@ -23,6 +24,7 @@ import {
   type PollOption,
   type PollVote,
   type FeaturedEvent,
+  type Pledge,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
@@ -33,6 +35,7 @@ import {
   type InsertPollOption,
   type InsertPollVote,
   type InsertFeaturedEvent,
+  type InsertPledge,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -92,6 +95,10 @@ export interface IStorage {
   createPoll(poll: InsertPoll, options: string[]): Promise<Poll>;
   votePoll(vote: InsertPollVote): Promise<void>;
   getUserPollVote(pollId: number, userId: string): Promise<PollVote | undefined>;
+  
+  // Pledge operations
+  createPledge(pledge: InsertPledge): Promise<Pledge>;
+  getEventPledges(eventId: number): Promise<(Pledge & { pledger: User })[]>;
   
   // Stats
   getStats(): Promise<{
@@ -716,6 +723,41 @@ export class DatabaseStorage implements IStorage {
       .from(pollVotes)
       .where(and(eq(pollVotes.pollId, pollId), eq(pollVotes.userId, userId)));
     return vote;
+  }
+
+  // Pledge operations
+  async createPledge(pledge: InsertPledge): Promise<Pledge> {
+    const [newPledge] = await db.insert(pledges).values(pledge).returning();
+    
+    // Create a notification post for admins about the new pledge
+    const pledger = await this.getUser(pledge.pledgerId);
+    const event = await this.getEvent(pledge.eventId);
+    
+    if (pledger && event) {
+      const pledgerName = `${pledger.firstName || ''} ${pledger.lastName || ''}`.trim() || pledger.email || 'Anonymous';
+      const notificationContent = `New pledge received! ${pledgerName} pledged R${parseFloat(pledge.amount).toLocaleString()} for "${event.title}". Reference: ${pledge.reference || 'N/A'}`;
+      
+      await this.createPost({
+        authorId: pledge.pledgerId,
+        content: notificationContent,
+        type: "notification"
+      });
+    }
+    
+    return newPledge;
+  }
+
+  async getEventPledges(eventId: number): Promise<(Pledge & { pledger: User })[]> {
+    return await db.select()
+      .from(pledges)
+      .leftJoin(users, eq(pledges.pledgerId, users.id))
+      .where(eq(pledges.eventId, eventId))
+      .then(results => 
+        results.map(result => ({
+          ...result.pledges,
+          pledger: result.users!
+        }))
+      );
   }
 
   // Stats
