@@ -23,6 +23,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
     time: "",
     speakers: "",
     donationGoal: "",
+    paymentReference: "",
     imageUrl: "",
   });
   
@@ -55,6 +56,7 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
         time: "",
         speakers: "",
         donationGoal: "",
+        paymentReference: "",
         imageUrl: "",
       });
       setImageFile(null);
@@ -284,6 +286,19 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
                 Goal: {formatDisplayValue(formData.donationGoal)}
               </p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="paymentReference">Payment Reference (Optional)</Label>
+            <Input
+              id="paymentReference"
+              value={formData.paymentReference}
+              onChange={handleInputChange('paymentReference')}
+              placeholder="e.g., Event-Alumni-Donation"
+            />
+            <p className="text-sm text-gray-600 mt-1">
+              Custom reference for donations to this event. If not set, the general banking reference will be used.
+            </p>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

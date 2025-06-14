@@ -91,6 +91,7 @@ export const events = pgTable("events", {
   time: time("time").notNull(),
   speakers: text("speakers"),
   donationGoal: decimal("donation_goal", { precision: 10, scale: 2 }),
+  paymentReference: varchar("payment_reference"),
   imageUrl: varchar("image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
