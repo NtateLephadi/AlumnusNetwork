@@ -118,12 +118,16 @@ export default function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         
-        {event.speakers && (
-          <div className="mb-4">
-            <h4 className="font-semibold text-gray-900 mb-1">Speakers:</h4>
-            <p className="text-gray-600 text-sm">{event.speakers}</p>
-          </div>
-        )}
+        <div className="mb-4 min-h-[60px] flex flex-col justify-start">
+          {event.speakers ? (
+            <>
+              <h4 className="font-semibold text-gray-900 mb-1">Speakers:</h4>
+              <p className="text-gray-600 text-sm">{event.speakers}</p>
+            </>
+          ) : (
+            <div className="h-[60px]"></div>
+          )}
+        </div>
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
