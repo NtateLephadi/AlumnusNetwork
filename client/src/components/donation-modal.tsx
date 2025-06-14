@@ -16,6 +16,7 @@ interface DonationModalProps {
   eventId: number;
   donationGoal?: number | null;
   totalDonations: number;
+  totalPledges: number;
 }
 
 export function DonationModal({ 

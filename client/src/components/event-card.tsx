@@ -141,7 +141,15 @@ export default function EventCard({ event }: EventCardProps) {
             {donationGoal > 0 && (
               <div className="text-sm">
                 <span className="font-semibold text-uct-gold">R{event.totalDonations.toLocaleString()}</span>
-                <span className="text-gray-600"> raised of R{donationGoal.toLocaleString()} goal</span>
+                <span className="text-gray-600"> raised</span>
+                {event.totalPledges > 0 && (
+                  <>
+                    <span className="text-gray-600"> + </span>
+                    <span className="font-semibold text-green-600">R{event.totalPledges.toLocaleString()}</span>
+                    <span className="text-gray-600"> pledged</span>
+                  </>
+                )}
+                <span className="text-gray-600"> of R{donationGoal.toLocaleString()} goal</span>
               </div>
             )}
           </div>
@@ -183,6 +191,7 @@ export default function EventCard({ event }: EventCardProps) {
         eventId={event.id}
         donationGoal={event.donationGoal ? parseFloat(event.donationGoal) : null}
         totalDonations={event.totalDonations}
+        totalPledges={event.totalPledges}
       />
     </div>
   );

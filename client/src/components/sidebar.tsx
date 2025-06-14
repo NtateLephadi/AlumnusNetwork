@@ -133,34 +133,7 @@ export default function Sidebar() {
         </CardContent>
       </Card>
 
-      {/* Community Stats */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Community Impact</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-uct-blue">
-              {stats?.totalAlumni?.toLocaleString() || '1,247'}
-            </div>
-            <div className="text-sm text-gray-600">Active Alumni</div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <div className="text-lg font-semibold text-uct-gold">
-                R{stats?.totalDonations?.toLocaleString() || '287K'}
-              </div>
-              <div className="text-xs text-gray-600">Total Raised</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-uct-red">
-                {stats?.eventsThisYear || '24'}
-              </div>
-              <div className="text-xs text-gray-600">Events This Year</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
     </div>
   );
