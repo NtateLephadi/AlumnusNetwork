@@ -11,7 +11,8 @@ import {
   insertPostLikeSchema,
   insertPollSchema,
   insertPollVoteSchema,
-  insertFeaturedEventSchema
+  insertFeaturedEventSchema,
+  insertPledgeSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -499,6 +500,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Pledge routes
+  app.post('/api/pledges', isAuthenticated, isApprovedUser, async (req: any, res) => {
+    try {
+      const pledgeData = insertPledgeSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      
+      const pledge = await storage.createPledge({
+        ...pledgeData,
+        pledgerId: userId,
+      });
+      
+      res.json(pledge);
+    } catch (error) {
+      console.error("Error creating pledge:", error);
+      res.status(500).json({ message: "Failed to create pledge" });
+    }
+  });
+
+  app.get('/api/events/:eventId/pledges', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const pledges = await storage.getEventPledges(eventId);
+      res.json(pledges);
+    } catch (error) {
+      console.error("Error fetching event pledges:", error);
+      res.status(500).json({ message: "Failed to fetch event pledges" });
     }
   });
 
