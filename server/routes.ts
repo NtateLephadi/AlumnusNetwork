@@ -12,8 +12,11 @@ import {
   insertPollSchema,
   insertPollVoteSchema,
   insertFeaturedEventSchema,
-  insertPledgeSchema
+  insertPledgeSchema,
+  userEducation
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 // Admin middleware
@@ -188,6 +191,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error exiting community:", error);
       res.status(500).json({ message: "Failed to exit community" });
+    }
+  });
+
+  // Education routes
+  app.get('/api/users/:userId/education', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const education = await storage.getUserEducation(userId);
+      res.json(education);
+    } catch (error) {
+      console.error("Error fetching user education:", error);
+      res.status(500).json({ message: "Failed to fetch education" });
+    }
+  });
+
+  app.post('/api/users/:userId/education', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      // Only allow users to add their own education
+      if (userId !== currentUserId) {
+        return res.status(403).json({ message: "Can only manage your own education" });
+      }
+
+      const educationData = { ...req.body, userId };
+      const education = await storage.addUserEducation(educationData);
+      res.json(education);
+    } catch (error) {
+      console.error("Error adding education:", error);
+      res.status(500).json({ message: "Failed to add education" });
+    }
+  });
+
+  app.put('/api/education/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const educationId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's education to verify ownership
+      const userEducations = await storage.getUserEducation(currentUserId);
+      const userEducationRecord = userEducations.find(edu => edu.id === educationId);
+      
+      if (!userEducationRecord) {
+        return res.status(403).json({ message: "Can only edit your own education" });
+      }
+
+      const education = await storage.updateUserEducation(educationId, req.body);
+      res.json(education);
+    } catch (error) {
+      console.error("Error updating education:", error);
+      res.status(500).json({ message: "Failed to update education" });
+    }
+  });
+
+  app.delete('/api/education/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const educationId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's education to verify ownership
+      const userEducations = await storage.getUserEducation(currentUserId);
+      const userEducationRecord = userEducations.find(edu => edu.id === educationId);
+      
+      if (!userEducationRecord) {
+        return res.status(403).json({ message: "Can only delete your own education" });
+      }
+
+      await storage.deleteUserEducation(educationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting education:", error);
+      res.status(500).json({ message: "Failed to delete education" });
     }
   });
 

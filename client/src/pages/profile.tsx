@@ -24,6 +24,8 @@ export default function Profile(props: any) {
   const [exitReason, setExitReason] = useState("");
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showEducationModal, setShowEducationModal] = useState(false);
+  const [editingEducation, setEditingEducation] = useState<any>(null);
 
   const isOwnProfile = !userId || userId === (currentUser as any)?.id;
   const profileUserId = userId || (currentUser as any)?.id;
@@ -44,6 +46,12 @@ export default function Profile(props: any) {
 
   const { data: profileUser, isLoading: loadingProfile } = useQuery({
     queryKey: isOwnProfile ? ["/api/auth/user"] : ["/api/users", profileUserId],
+    enabled: isAuthenticated && !!profileUserId,
+    retry: false,
+  });
+
+  const { data: userEducation = [], isLoading: isEducationLoading } = useQuery({
+    queryKey: ["/api/users", profileUserId, "education"],
     enabled: isAuthenticated && !!profileUserId,
     retry: false,
   });
