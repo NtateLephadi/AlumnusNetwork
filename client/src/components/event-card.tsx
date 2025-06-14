@@ -112,7 +112,7 @@ export default function EventCard({ event }: EventCardProps) {
               </div>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4 min-h-[80px] flex items-start">
               <p className="text-gray-700 leading-relaxed">{event.description}</p>
             </div>
           </div>
