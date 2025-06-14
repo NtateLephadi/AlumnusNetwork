@@ -350,6 +350,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Non-Profit Organizations routes
+  app.get('/api/users/:userId/nonprofits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const nonprofits = await storage.getUserNonprofits(userId);
+      res.json(nonprofits);
+    } catch (error) {
+      console.error("Error fetching nonprofits:", error);
+      res.status(500).json({ message: "Failed to fetch nonprofits" });
+    }
+  });
+
+  app.post('/api/users/:userId/nonprofits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      // Only allow users to add their own nonprofit experience
+      if (userId !== currentUserId) {
+        return res.status(403).json({ message: "Can only manage your own nonprofit experience" });
+      }
+
+      const nonprofitData = { 
+        ...req.body, 
+        userId,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      const nonprofit = await storage.addUserNonprofit(nonprofitData);
+      res.json(nonprofit);
+    } catch (error) {
+      console.error("Error adding nonprofit:", error);
+      res.status(500).json({ message: "Failed to add nonprofit" });
+    }
+  });
+
+  app.put('/api/nonprofits/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const nonprofitId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's nonprofits to verify ownership
+      const userNonprofits = await storage.getUserNonprofits(currentUserId);
+      const userNonprofitRecord = userNonprofits.find(np => np.id === nonprofitId);
+      
+      if (!userNonprofitRecord) {
+        return res.status(403).json({ message: "Can only edit your own nonprofit experience" });
+      }
+
+      const updateData = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      const nonprofit = await storage.updateUserNonprofit(nonprofitId, updateData);
+      res.json(nonprofit);
+    } catch (error) {
+      console.error("Error updating nonprofit:", error);
+      res.status(500).json({ message: "Failed to update nonprofit" });
+    }
+  });
+
+  app.delete('/api/nonprofits/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const nonprofitId = parseInt(req.params.id);
+      const currentUserId = req.user.claims.sub;
+      
+      // Get user's nonprofits to verify ownership
+      const userNonprofits = await storage.getUserNonprofits(currentUserId);
+      const userNonprofitRecord = userNonprofits.find(np => np.id === nonprofitId);
+      
+      if (!userNonprofitRecord) {
+        return res.status(403).json({ message: "Can only delete your own nonprofit experience" });
+      }
+
+      await storage.deleteUserNonprofit(nonprofitId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting nonprofit:", error);
+      res.status(500).json({ message: "Failed to delete nonprofit" });
+    }
+  });
+
   // Posts routes (viewable by approved users)
   app.get('/api/posts', isAuthenticated, isApprovedUser, async (req, res) => {
     try {

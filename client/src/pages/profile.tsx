@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, MapPin, Building, Briefcase, Calendar, Users, Trophy, Edit, Camera, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, Building, Briefcase, Calendar, Users, Trophy, Edit, Camera, Trash2, Heart } from "lucide-react";
 
 export default function Profile(props: any) {
   const userId = props.params?.userId;
@@ -28,6 +28,8 @@ export default function Profile(props: any) {
   const [editingEducation, setEditingEducation] = useState<any>(null);
   const [showVentureModal, setShowVentureModal] = useState(false);
   const [editingVenture, setEditingVenture] = useState<any>(null);
+  const [showNonprofitModal, setShowNonprofitModal] = useState(false);
+  const [editingNonprofit, setEditingNonprofit] = useState<any>(null);
 
   const isOwnProfile = !userId || userId === (currentUser as any)?.id;
   const profileUserId = userId || (currentUser as any)?.id;
@@ -60,6 +62,12 @@ export default function Profile(props: any) {
 
   const { data: userBusinessVentures = [], isLoading: isVenturesLoading } = useQuery({
     queryKey: [`/api/users/${profileUserId}/business-ventures`],
+    enabled: isAuthenticated && !!profileUserId,
+    retry: false,
+  });
+
+  const { data: userNonprofits = [], isLoading: isNonprofitsLoading } = useQuery({
+    queryKey: [`/api/users/${profileUserId}/nonprofits`],
     enabled: isAuthenticated && !!profileUserId,
     retry: false,
   });
@@ -449,6 +457,106 @@ export default function Profile(props: any) {
   const openAddVenture = () => {
     setEditingVenture(null);
     setShowVentureModal(true);
+  };
+
+  const addNonprofitMutation = useMutation({
+    mutationFn: async (nonprofitData: any) => {
+      await apiRequest("POST", `/api/users/${profileUserId}/nonprofits`, nonprofitData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/nonprofits`] });
+      setShowNonprofitModal(false);
+      setEditingNonprofit(null);
+      toast({
+        title: "Success",
+        description: "Nonprofit experience added successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add nonprofit experience",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateNonprofitMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      await apiRequest("PUT", `/api/nonprofits/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/nonprofits`] });
+      setShowNonprofitModal(false);
+      setEditingNonprofit(null);
+      toast({
+        title: "Success",
+        description: "Nonprofit experience updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to update nonprofit experience",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteNonprofitMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/nonprofits/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/nonprofits`] });
+      toast({
+        title: "Success",
+        description: "Nonprofit experience deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete nonprofit experience",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleNonprofitSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    const startDateValue = formData.get('startDate') as string;
+    const endDateValue = formData.get('endDate') as string;
+    
+    const data = {
+      organizationName: formData.get('organizationName'),
+      role: formData.get('role'),
+      cause: formData.get('cause') || null,
+      startDate: startDateValue ? startDateValue : null,
+      endDate: endDateValue ? endDateValue : null,
+      isCurrent: formData.get('isCurrent') === 'on',
+      description: formData.get('description') || null,
+      website: formData.get('website') || null,
+      location: formData.get('location') || null,
+    };
+
+    if (editingNonprofit) {
+      updateNonprofitMutation.mutate({ id: editingNonprofit.id, data });
+    } else {
+      addNonprofitMutation.mutate(data);
+    }
+  };
+
+  const openEditNonprofit = (nonprofit: any) => {
+    setEditingNonprofit(nonprofit);
+    setShowNonprofitModal(true);
+  };
+
+  const openAddNonprofit = () => {
+    setEditingNonprofit(null);
+    setShowNonprofitModal(true);
   };
 
   return (
@@ -954,6 +1062,107 @@ export default function Profile(props: any) {
                 </CardContent>
               </Card>
 
+              {/* Non-Profit Organizations Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Non-Profit Organizations</CardTitle>
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openAddNonprofit}
+                    >
+                      <Heart className="h-4 w-4 mr-2" />
+                      Add Organization
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isNonprofitsLoading ? (
+                    <div className="text-center py-4 text-gray-500">Loading nonprofit experience...</div>
+                  ) : userNonprofits.length > 0 ? (
+                    <div className="space-y-4">
+                      {userNonprofits.map((nonprofit: any) => (
+                        <div key={nonprofit.id} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-gray-900">{nonprofit.role}</h4>
+                                {nonprofit.isCurrent && (
+                                  <Badge variant="secondary" className="text-xs">Current</Badge>
+                                )}
+                              </div>
+                              <p className="text-gray-700 font-medium">{nonprofit.organizationName}</p>
+                              {nonprofit.cause && (
+                                <p className="text-sm text-gray-600">{nonprofit.cause}</p>
+                              )}
+                              {nonprofit.location && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {nonprofit.location}
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-500 mt-1">
+                                {nonprofit.startDate && nonprofit.endDate 
+                                  ? `${new Date(nonprofit.startDate).toLocaleDateString()} - ${new Date(nonprofit.endDate).toLocaleDateString()}`
+                                  : nonprofit.startDate 
+                                    ? `${new Date(nonprofit.startDate).toLocaleDateString()} - Present`
+                                    : 'Dates not specified'
+                                }
+                              </p>
+                              {nonprofit.description && (
+                                <p className="text-sm text-gray-600 mt-2">{nonprofit.description}</p>
+                              )}
+                              {nonprofit.website && (
+                                <a 
+                                  href={nonprofit.website.startsWith('http') ? nonprofit.website : `https://${nonprofit.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:text-blue-800 mt-1 inline-block"
+                                >
+                                  Visit Website →
+                                </a>
+                              )}
+                            </div>
+                            {isOwnProfile && (
+                              <div className="flex space-x-2 ml-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditNonprofit(nonprofit)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteNonprofitMutation.mutate(nonprofit.id)}
+                                  disabled={deleteNonprofitMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      {isOwnProfile ? (
+                        <div>
+                          <Heart className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                          <p>No nonprofit experience added yet</p>
+                          <p className="text-sm mt-1">Add your volunteer work and community involvement</p>
+                        </div>
+                      ) : (
+                        <p>No nonprofit experience available</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Personal Interests */}
               <Card>
                 <CardHeader>
@@ -1280,6 +1489,130 @@ export default function Profile(props: any) {
                 {(addVentureMutation.isPending || updateVentureMutation.isPending) 
                   ? "Saving..." 
                   : editingVenture 
+                    ? "Update" 
+                    : "Add"
+                }
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Non-Profit Organization Modal */}
+      <Dialog open={showNonprofitModal} onOpenChange={setShowNonprofitModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingNonprofit ? "Edit Non-Profit Experience" : "Add Non-Profit Experience"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleNonprofitSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="organizationName">Organization Name</Label>
+                <Input
+                  id="organizationName"
+                  name="organizationName"
+                  defaultValue={editingNonprofit?.organizationName || ""}
+                  placeholder="e.g., Red Cross, Habitat for Humanity"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="role">Your Role</Label>
+                <Input
+                  id="role"
+                  name="role"
+                  defaultValue={editingNonprofit?.role || ""}
+                  placeholder="e.g., Volunteer, Board Member, Program Coordinator"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="cause">Cause/Focus Area</Label>
+                <Input
+                  id="cause"
+                  name="cause"
+                  defaultValue={editingNonprofit?.cause || ""}
+                  placeholder="e.g., Education, Health, Environment, Poverty"
+                />
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  defaultValue={editingNonprofit?.location || ""}
+                  placeholder="e.g., Cape Town, South Africa"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    defaultValue={editingNonprofit?.startDate ? new Date(editingNonprofit.startDate).toISOString().split('T')[0] : ""}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    defaultValue={editingNonprofit?.endDate ? new Date(editingNonprofit.endDate).toISOString().split('T')[0] : ""}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="isCurrent"
+                  name="isCurrent"
+                  type="checkbox"
+                  defaultChecked={editingNonprofit?.isCurrent || false}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="isCurrent" className="text-sm font-normal">
+                  I currently volunteer here
+                </Label>
+              </div>
+              <div>
+                <Label htmlFor="website">Website (Optional)</Label>
+                <Input
+                  id="website"
+                  name="website"
+                  defaultValue={editingNonprofit?.website || ""}
+                  placeholder="e.g., www.organization.org"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editingNonprofit?.description || ""}
+                  placeholder="Describe your role, impact, key projects or achievements..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowNonprofitModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={addNonprofitMutation.isPending || updateNonprofitMutation.isPending}
+              >
+                {(addNonprofitMutation.isPending || updateNonprofitMutation.isPending) 
+                  ? "Saving..." 
+                  : editingNonprofit 
                     ? "Update" 
                     : "Add"
                 }
