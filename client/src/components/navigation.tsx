@@ -57,7 +57,9 @@ export default function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {user && (user as any).status === 'approved' && <NotificationBell />}
+            {user && (user as any)?.status === 'approved' && (
+              <NotificationBell />
+            )}
             <a 
               href="/profile" 
               className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center hover:ring-2 hover:ring-uct-blue transition-all"

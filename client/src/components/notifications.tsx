@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, X, Check } from "lucide-react";
+import { Bell, X, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,12 +47,36 @@ export function NotificationBell() {
     },
   });
 
+  const deleteNotificationMutation = useMutation({
+    mutationFn: (notificationId: number) => 
+      apiRequest(`/api/notifications/${notificationId}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    },
+  });
+
+  const deleteAllNotificationsMutation = useMutation({
+    mutationFn: () => 
+      apiRequest('/api/notifications', 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    },
+  });
+
   const handleMarkAsRead = (notificationId: number) => {
     markAsReadMutation.mutate(notificationId);
   };
 
   const handleMarkAllAsRead = () => {
     markAllAsReadMutation.mutate();
+  };
+
+  const handleDeleteNotification = (notificationId: number) => {
+    deleteNotificationMutation.mutate(notificationId);
+  };
+
+  const handleDeleteAll = () => {
+    deleteAllNotificationsMutation.mutate();
   };
 
   return (
@@ -75,18 +99,32 @@ export function NotificationBell() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Notifications</CardTitle>
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleMarkAllAsRead}
-                  disabled={markAllAsReadMutation.isPending}
-                  className="text-xs"
-                >
-                  <Check className="h-3 w-3 mr-1" />
-                  Mark all read
-                </Button>
-              )}
+              <div className="flex items-center gap-1">
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleMarkAllAsRead}
+                    disabled={markAllAsReadMutation.isPending}
+                    className="text-xs"
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    Mark all read
+                  </Button>
+                )}
+                {notifications.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeleteAll}
+                    disabled={deleteAllNotificationsMutation.isPending}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Clear all
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <Separator />
@@ -126,17 +164,30 @@ export function NotificationBell() {
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                           </p>
                         </div>
-                        {!notification.isRead && (
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {!notification.isRead && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleMarkAsRead(notification.id)}
+                              disabled={markAsReadMutation.isPending}
+                              className="h-6 w-6 p-0"
+                              title="Mark as read"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleMarkAsRead(notification.id)}
-                            disabled={markAsReadMutation.isPending}
-                            className="h-8 w-8 p-0 flex-shrink-0"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                            disabled={deleteNotificationMutation.isPending}
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                            title="Delete notification"
                           >
                             <X className="h-3 w-3" />
                           </Button>
-                        )}
+                        </div>
                       </div>
                     </div>
                   ))}
