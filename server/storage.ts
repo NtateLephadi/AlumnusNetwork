@@ -13,6 +13,7 @@ import {
   pledges,
   communityExits,
   userEducation,
+  userBusinessVentures,
   type User,
   type UpsertUser,
   type Post,
@@ -27,6 +28,7 @@ import {
   type FeaturedEvent,
   type Pledge,
   type UserEducation,
+  type UserBusinessVenture,
   type InsertPost,
   type InsertEvent,
   type InsertRsvp,
@@ -39,6 +41,7 @@ import {
   type InsertFeaturedEvent,
   type InsertPledge,
   type InsertUserEducation,
+  type InsertUserBusinessVenture,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and } from "drizzle-orm";
@@ -66,6 +69,12 @@ export interface IStorage {
   addUserEducation(education: InsertUserEducation): Promise<UserEducation>;
   updateUserEducation(id: number, education: Partial<InsertUserEducation>): Promise<UserEducation>;
   deleteUserEducation(id: number): Promise<void>;
+  
+  // Business Ventures operations
+  getUserBusinessVentures(userId: string): Promise<UserBusinessVenture[]>;
+  addUserBusinessVenture(venture: InsertUserBusinessVenture): Promise<UserBusinessVenture>;
+  updateUserBusinessVenture(id: number, venture: Partial<InsertUserBusinessVenture>): Promise<UserBusinessVenture>;
+  deleteUserBusinessVenture(id: number): Promise<void>;
   
   // Post operations (admin-only creation)
   getPosts(): Promise<(Post & { author: User; likes: number; comments: number })[]>;

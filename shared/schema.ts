@@ -181,6 +181,22 @@ export const pledges = pgTable("pledges", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Business Ventures table
+export const userBusinessVentures = pgTable("user_business_ventures", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  companyName: varchar("company_name").notNull(),
+  role: varchar("role").notNull(),
+  industry: varchar("industry"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  isCurrent: boolean("is_current").default(false),
+  description: text("description"),
+  website: varchar("website"),
+  location: varchar("location"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -193,10 +209,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   pollVotes: many(pollVotes),
   pledges: many(pledges),
   education: many(userEducation),
+  businessVentures: many(userBusinessVentures),
 }));
 
 export const userEducationRelations = relations(userEducation, ({ one }) => ({
   user: one(users, { fields: [userEducation.userId], references: [users.id] }),
+}));
+
+export const userBusinessVenturesRelations = relations(userBusinessVentures, ({ one }) => ({
+  user: one(users, { fields: [userBusinessVentures.userId], references: [users.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -345,3 +366,6 @@ export type InsertPledge = z.infer<typeof insertPledgeSchema>;
 
 export type UserEducation = typeof userEducation.$inferSelect;
 export type InsertUserEducation = typeof userEducation.$inferInsert;
+
+export type UserBusinessVenture = typeof userBusinessVentures.$inferSelect;
+export type InsertUserBusinessVenture = typeof userBusinessVentures.$inferInsert;
