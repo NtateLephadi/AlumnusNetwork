@@ -9,6 +9,7 @@ import Sidebar from "@/components/sidebar";
 import MobileNav from "@/components/mobile-nav";
 import { CreatePostModal } from "@/components/create-post-modal";
 import { CreateEventModal } from "@/components/create-event-modal";
+import { DonationModal } from "@/components/donation-modal";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showGenericDonation, setShowGenericDonation] = useState(false);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
   // Redirect to home if not authenticated
@@ -264,7 +266,10 @@ export default function Home() {
                     <i className="fas fa-calendar-plus"></i>
                     <span>Create Event</span>
                   </button>
-                  <button className="flex items-center space-x-2 text-gray-600 hover:text-uct-red transition-colors">
+                  <button 
+                    className="flex items-center space-x-2 text-gray-600 hover:text-uct-red transition-colors"
+                    onClick={() => setShowGenericDonation(true)}
+                  >
                     <i className="fas fa-heart"></i>
                     <span>Make Donation</span>
                   </button>
@@ -355,6 +360,16 @@ export default function Home() {
       <CreateEventModal 
         open={showCreateEvent} 
         onOpenChange={setShowCreateEvent}
+      />
+      
+      <DonationModal 
+        open={showGenericDonation} 
+        onOpenChange={setShowGenericDonation}
+        eventTitle="General Community Support"
+        eventId={0}
+        donationGoal={null}
+        totalDonations={0}
+        totalPledges={0}
       />
     </div>
   );
