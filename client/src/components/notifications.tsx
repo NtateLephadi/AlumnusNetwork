@@ -94,19 +94,19 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-96 p-0" align="end">
         <Card className="border-0 shadow-none">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Notifications</CardTitle>
-              <div className="flex items-center gap-1">
+              <CardTitle className="text-base font-semibold">Notifications</CardTitle>
+              <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleMarkAllAsRead}
                     disabled={markAllAsReadMutation.isPending}
-                    className="text-xs"
+                    className="text-xs h-7 px-2"
                   >
                     <Check className="h-3 w-3 mr-1" />
                     Mark all read
@@ -118,7 +118,7 @@ export function NotificationBell() {
                     size="sm"
                     onClick={handleDeleteAll}
                     disabled={deleteAllNotificationsMutation.isPending}
-                    className="text-xs text-red-600 hover:text-red-700"
+                    className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Clear all
@@ -143,35 +143,35 @@ export function NotificationBell() {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-muted/50 transition-colors ${
+                      className={`p-4 border-b last:border-b-0 hover:bg-muted/30 transition-colors ${
                         !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-sm font-medium truncate">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-medium leading-tight">
                               {notification.title}
                             </h4>
                             {!notification.isRead && (
                               <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0" />
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
                             {notification.message}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-start gap-1 flex-shrink-0 mt-1">
                           {!notification.isRead && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleMarkAsRead(notification.id)}
                               disabled={markAsReadMutation.isPending}
-                              className="h-6 w-6 p-0"
+                              className="h-7 w-7 p-0 hover:bg-green-100 hover:text-green-700"
                               title="Mark as read"
                             >
                               <Check className="h-3 w-3" />
@@ -182,7 +182,7 @@ export function NotificationBell() {
                             size="sm"
                             onClick={() => handleDeleteNotification(notification.id)}
                             disabled={deleteNotificationMutation.isPending}
-                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                            className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
                             title="Delete notification"
                           >
                             <X className="h-3 w-3" />
