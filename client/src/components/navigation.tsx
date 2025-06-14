@@ -58,7 +58,9 @@ export default function Navigation() {
 
           <div className="flex items-center space-x-4">
             {user && (user as any)?.status === 'approved' && (
-              <NotificationBell />
+              <div>
+                <NotificationBell />
+              </div>
             )}
             <a 
               href="/profile" 
