@@ -418,16 +418,20 @@ export default function Profile(props: any) {
   const handleVentureSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    
+    const startDateValue = formData.get('startDate') as string;
+    const endDateValue = formData.get('endDate') as string;
+    
     const data = {
       companyName: formData.get('companyName'),
       role: formData.get('role'),
-      industry: formData.get('industry'),
-      startDate: formData.get('startDate') ? new Date(formData.get('startDate') as string) : null,
-      endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : null,
+      industry: formData.get('industry') || null,
+      startDate: startDateValue ? startDateValue : null,
+      endDate: endDateValue ? endDateValue : null,
       isCurrent: formData.get('isCurrent') === 'on',
-      description: formData.get('description'),
-      website: formData.get('website'),
-      location: formData.get('location'),
+      description: formData.get('description') || null,
+      website: formData.get('website') || null,
+      location: formData.get('location') || null,
     };
 
     if (editingVenture) {

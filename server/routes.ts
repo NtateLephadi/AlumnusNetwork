@@ -289,7 +289,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Can only manage your own business ventures" });
       }
 
-      const ventureData = { ...req.body, userId };
+      const ventureData = { 
+        ...req.body, 
+        userId,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
       const venture = await storage.addUserBusinessVenture(ventureData);
       res.json(venture);
     } catch (error) {
@@ -311,7 +316,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Can only edit your own business ventures" });
       }
 
-      const venture = await storage.updateUserBusinessVenture(ventureId, req.body);
+      const updateData = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      const venture = await storage.updateUserBusinessVenture(ventureId, updateData);
       res.json(venture);
     } catch (error) {
       console.error("Error updating business venture:", error);
