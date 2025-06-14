@@ -48,7 +48,7 @@ export default function Sidebar() {
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <Button 
             className="w-full bg-uct-blue hover:bg-blue-700 text-white"
             onClick={() => setShowGenericDonation(true)}
