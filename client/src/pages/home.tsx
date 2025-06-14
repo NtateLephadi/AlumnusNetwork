@@ -256,7 +256,7 @@ export default function Home() {
                     Share an announcement with the community...
                   </button>
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-start space-x-6 pt-4 border-t border-gray-100">
                   <button 
                     className="flex items-center space-x-2 text-gray-600 hover:text-uct-blue transition-colors"
                     onClick={() => setShowCreateEvent(true)}
