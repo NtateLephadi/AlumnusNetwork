@@ -70,7 +70,8 @@ export default function EventCard({ event }: EventCardProps) {
   });
 
   const donationGoal = event.donationGoal ? parseFloat(event.donationGoal) : 0;
-  const pledgeProgress = donationGoal > 0 ? (event.totalPledges / donationGoal) * 100 : 0;
+  const totalPledges = event.totalPledges || 0;
+  const pledgeProgress = donationGoal > 0 ? (totalPledges / donationGoal) * 100 : 0;
 
   const eventDate = new Date(`${event.date}T${event.time}`);
   const isUpcoming = eventDate > new Date();
@@ -140,7 +141,7 @@ export default function EventCard({ event }: EventCardProps) {
             </div>
             {donationGoal > 0 && (
               <div className="text-sm">
-                <span className="font-semibold text-green-600">R{event.totalPledges.toLocaleString()}</span>
+                <span className="font-semibold text-green-600">R{totalPledges.toLocaleString()}</span>
                 <span className="text-gray-600"> pledged of R{donationGoal.toLocaleString()} goal</span>
               </div>
             )}
@@ -183,7 +184,7 @@ export default function EventCard({ event }: EventCardProps) {
         eventId={event.id}
         donationGoal={event.donationGoal ? parseFloat(event.donationGoal) : null}
         totalDonations={event.totalDonations}
-        totalPledges={event.totalPledges}
+        totalPledges={totalPledges}
       />
     </div>
   );
