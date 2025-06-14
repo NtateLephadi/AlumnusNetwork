@@ -300,7 +300,7 @@ export default function Donations() {
                       <div className="text-sm text-gray-600">Active Alumni</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-uct-blue">R{(stats as any).totalDonations?.toLocaleString() || 0}</div>
+                      <div className="text-2xl font-bold text-uct-blue">R{((stats as any)?.totalDonations || 0).toLocaleString()}</div>
                       <div className="text-sm text-gray-600">Total Donations</div>
                     </div>
                     <div className="text-center">
