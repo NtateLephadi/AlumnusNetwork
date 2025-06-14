@@ -29,21 +29,6 @@ export default function Landing() {
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-bold text-uct-blue">1,200+</div>
-                  <div className="text-xs text-gray-600">Alumni</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-uct-gold">R250K+</div>
-                  <div className="text-xs text-gray-600">Raised</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-uct-red">50+</div>
-                  <div className="text-xs text-gray-600">Events</div>
-                </div>
-              </div>
-              
               <Button 
                 className="w-full bg-uct-blue hover:bg-blue-700"
                 onClick={() => window.location.href = '/api/login'}
