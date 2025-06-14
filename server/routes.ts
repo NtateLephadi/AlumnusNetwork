@@ -507,11 +507,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/pledges', isAuthenticated, isApprovedUser, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const amount = parseFloat(req.body.amount);
+      
+      // Validate amount is within database limits (max 99,999,999.99)
+      if (amount > 99999999.99) {
+        return res.status(400).json({ message: "Pledge amount cannot exceed R99,999,999.99" });
+      }
+      
+      if (amount <= 0) {
+        return res.status(400).json({ message: "Pledge amount must be greater than 0" });
+      }
       
       const pledgeData = {
         pledgerId: userId,
         eventId: req.body.eventId,
-        amount: req.body.amount.toString(), // Convert to string for decimal field
+        amount: amount.toString(), // Convert to string for decimal field
         reference: req.body.reference || null,
         status: "pending"
       };

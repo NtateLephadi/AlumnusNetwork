@@ -86,7 +86,9 @@ export function DonationModal({
   };
 
   const handleSubmitPledge = () => {
-    if (!pledgeAmount || parseFloat(pledgeAmount) <= 0) {
+    const amount = parseFloat(pledgeAmount);
+    
+    if (!pledgeAmount || amount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid pledge amount.",
@@ -94,6 +96,16 @@ export function DonationModal({
       });
       return;
     }
+    
+    if (amount > 99999999.99) {
+      toast({
+        title: "Amount Too Large",
+        description: "Pledge amount cannot exceed R99,999,999.99",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     pledgeMutation.mutate(pledgeAmount);
   };
 
