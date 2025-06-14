@@ -56,12 +56,14 @@ export default function Sidebar() {
             <i className="fas fa-heart mr-2"></i>
             Make a Donation
           </Button>
-          <Link href="/events">
-            <Button variant="outline" className="w-full">
-              <i className="fas fa-calendar text-uct-blue mr-2"></i>
-              Browse Events
-            </Button>
-          </Link>
+          <div>
+            <Link href="/events">
+              <Button variant="outline" className="w-full">
+                <i className="fas fa-calendar text-uct-blue mr-2"></i>
+                Browse Events
+              </Button>
+            </Link>
+          </div>
           <Button variant="outline" className="w-full">
             <i className="fas fa-user-edit text-uct-blue mr-2"></i>
             Update Profile
