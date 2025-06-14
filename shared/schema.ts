@@ -174,7 +174,7 @@ export const featuredEvents = pgTable("featured_events", {
 export const pledges = pgTable("pledges", {
   id: serial("id").primaryKey(),
   pledgerId: varchar("pledger_id").notNull().references(() => users.id),
-  eventId: integer("event_id").notNull().references(() => events.id),
+  eventId: integer("event_id").references(() => events.id), // Made optional for generic donations
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   reference: varchar("reference"),
   status: varchar("status", { enum: ["pending", "fulfilled", "cancelled"] }).default("pending"),

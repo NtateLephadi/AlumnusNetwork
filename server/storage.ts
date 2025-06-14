@@ -737,11 +737,21 @@ export class DatabaseStorage implements IStorage {
     
     // Create a notification post for admins about the new pledge
     const pledger = await this.getUser(pledge.pledgerId);
-    const event = await this.getEvent(pledge.eventId);
     
-    if (pledger && event) {
+    if (pledger) {
       const pledgerName = `${pledger.firstName || ''} ${pledger.lastName || ''}`.trim() || pledger.email || 'Anonymous';
-      const notificationContent = `New pledge received! ${pledgerName} pledged R${parseFloat(pledge.amount).toLocaleString()} for "${event.title}". Reference: ${pledge.reference || 'N/A'}`;
+      
+      let notificationContent: string;
+      if (pledge.eventId) {
+        const event = await this.getEvent(pledge.eventId);
+        if (event) {
+          notificationContent = `New pledge received! ${pledgerName} pledged R${parseFloat(pledge.amount).toLocaleString()} for "${event.title}". Reference: ${pledge.reference || 'N/A'}`;
+        } else {
+          notificationContent = `New pledge received! ${pledgerName} pledged R${parseFloat(pledge.amount).toLocaleString()} for an event. Reference: ${pledge.reference || 'N/A'}`;
+        }
+      } else {
+        notificationContent = `New general donation pledge received! ${pledgerName} pledged R${parseFloat(pledge.amount).toLocaleString()} for community support. Reference: ${pledge.reference || 'N/A'}`;
+      }
       
       await this.createPost({
         authorId: pledge.pledgerId,

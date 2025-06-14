@@ -366,7 +366,7 @@ export default function Home() {
         open={showGenericDonation} 
         onOpenChange={setShowGenericDonation}
         eventTitle="General Community Support"
-        eventId={0}
+        eventId={null}
         donationGoal={null}
         totalDonations={0}
         totalPledges={0}

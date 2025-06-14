@@ -13,7 +13,7 @@ interface DonationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventTitle: string;
-  eventId: number;
+  eventId: number | null;
   donationGoal?: number | null;
   totalDonations: number;
   totalPledges: number;
