@@ -43,11 +43,17 @@ export function DonationModal({
 
   const pledgeMutation = useMutation({
     mutationFn: async (amount: string) => {
-      await apiRequest("POST", "/api/pledges", {
-        eventId,
+      const pledgeData: any = {
         amount: parseFloat(amount),
         reference: bankingDetails.reference
-      });
+      };
+      
+      // Only include eventId if it's not null (for event-specific pledges)
+      if (eventId !== null) {
+        pledgeData.eventId = eventId;
+      }
+      
+      await apiRequest("POST", "/api/pledges", pledgeData);
     },
     onSuccess: () => {
       toast({
