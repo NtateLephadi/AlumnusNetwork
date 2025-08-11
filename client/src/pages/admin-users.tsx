@@ -433,7 +433,7 @@ export default function AdminUsers() {
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i className="fas fa-users text-gray-400 text-xl"></i>
                   </div>
-                  <h3 className="font-heading font-semibold text-gray-900 mb-2">No pending users</h3>
+                  <h3 className="font-heading font-semibold text-white mb-2">No pending users</h3>
                   <p className="text-gray-600">All user applications have been reviewed.</p>
                 </CardContent>
               </Card>
@@ -451,7 +451,7 @@ export default function AdminUsers() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-heading font-semibold text-gray-900">
+                            <h3 className="font-heading font-semibold text-white">
                               {pendingUser.firstName && pendingUser.lastName
                                 ? `${pendingUser.firstName} ${pendingUser.lastName}`
                                 : pendingUser.email}
@@ -508,10 +508,10 @@ export default function AdminUsers() {
         {selectedTab === "all" && (
           <div>
             <div className="mb-6">
-              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">
+              <h2 className="text-lg font-heading font-semibold text-white mb-2">
                 All Users
               </h2>
-              <p className="text-gray-600">
+              <p className="text-white">
                 Manage all users in the system and their permissions.
               </p>
             </div>
@@ -528,10 +528,10 @@ export default function AdminUsers() {
           <div>
             <div className="mb-6 flex justify-between items-center">
               <div>
-                <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">
+                <h2 className="text-lg font-heading font-semibold text-white mb-2">
                   Banking Details Management
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-white">
                   Manage banking details for donations and payments.
                 </p>
               </div>
