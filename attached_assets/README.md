@@ -10,6 +10,10 @@ This directory contains static assets and uploaded files used throughout the UCT
 - Generated images for content
 - Screenshots and documentation images
 
+### Upload Directory
+- `uploads/` - Server-uploaded files from forms and user interactions
+- Automatically created when first file is uploaded
+
 ### File Management
 - All uploaded assets are stored with unique identifiers
 - Images are optimized for web delivery

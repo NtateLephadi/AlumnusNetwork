@@ -44,7 +44,11 @@ A comprehensive community platform designed to empower University of Cape Town (
 
 ## Recent Changes
 
-### January 11, 2025 - Multi-Provider Authentication Integration
+### January 11, 2025 - Event Image Upload Fix & Multi-Provider Authentication
+- ✅ Fixed event image upload functionality with proper file handling
+- ✅ Added multer-based file upload system for event images
+- ✅ Created secure file upload endpoint with authentication
+- ✅ Updated create event modal to upload files and use returned URLs
 - ✅ Added Microsoft OAuth authentication alongside existing Replit auth
 - ✅ Added Google OAuth authentication for Gmail/Google Workspace accounts
 - ✅ Created graceful fallback when OAuth credentials are not available

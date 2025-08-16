@@ -35,10 +35,31 @@ export function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) 
 
   const createEventMutation = useMutation({
     mutationFn: async (data: any) => {
+      let imageUrl = data.imageUrl;
+      
+      // Upload file if one is selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include', // Include session cookies
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          imageUrl = uploadResult.url;
+        } else {
+          throw new Error('Failed to upload image');
+        }
+      }
+      
       const eventData = {
         ...data,
         donationGoal: data.donationGoal || null,
-        imageUrl: data.imageUrl || null,
+        imageUrl: imageUrl || null,
       };
       await apiRequest("POST", "/api/events", eventData);
     },
