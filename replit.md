@@ -44,12 +44,13 @@ A comprehensive community platform designed to empower University of Cape Town (
 
 ## Recent Changes
 
-### January 11, 2025 - Microsoft Authentication Integration
+### January 11, 2025 - Multi-Provider Authentication Integration
 - ✅ Added Microsoft OAuth authentication alongside existing Replit auth
-- ✅ Created graceful fallback when Microsoft credentials are not available
+- ✅ Added Google OAuth authentication for Gmail/Google Workspace accounts
+- ✅ Created graceful fallback when OAuth credentials are not available
 - ✅ Updated landing page to dynamically show available login methods
 - ✅ Added authentication methods API endpoint for frontend detection
-- ✅ Implemented multi-provider authentication support in backend
+- ✅ Implemented comprehensive multi-provider authentication support
 
 ### January 11, 2025 - Comprehensive Documentation
 - ✅ Created README files for every folder in the project (11 total README files)

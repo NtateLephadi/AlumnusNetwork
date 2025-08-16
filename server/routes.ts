@@ -68,14 +68,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/methods', (req, res) => {
     const methods = {
       replit: true,
-      microsoft: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET)
+      microsoft: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET),
+      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
     };
     res.json(methods);
   });
 
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.claims?.oid;
+      const userId = req.user.claims?.sub || req.user.claims?.oid || req.user.claims?.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {

@@ -1,6 +1,7 @@
 import * as client from "openid-client";
 import { Strategy, type VerifyFunction } from "openid-client/passport";
 import { Strategy as MicrosoftStrategy } from "passport-microsoft";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 import passport from "passport";
 import session from "express-session";
@@ -57,12 +58,20 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
-  provider: 'replit' | 'microsoft' = 'replit'
+  provider: 'replit' | 'microsoft' | 'google' = 'replit'
 ) {
   if (provider === 'microsoft') {
     await storage.upsertUser({
       id: claims.oid || claims.sub,
       email: claims.mail || claims.email,
+      firstName: claims.given_name || claims.first_name,
+      lastName: claims.family_name || claims.last_name,
+      profileImageUrl: claims.picture || claims.profile_image_url,
+    });
+  } else if (provider === 'google') {
+    await storage.upsertUser({
+      id: claims.sub || claims.id,
+      email: claims.email,
       firstName: claims.given_name || claims.first_name,
       lastName: claims.family_name || claims.last_name,
       profileImageUrl: claims.picture || claims.profile_image_url,
@@ -152,6 +161,47 @@ export async function setupAuth(app: Express) {
     console.log('Microsoft authentication not configured - missing credentials');
   }
 
+  // Setup Google OAuth (optional - only if credentials are provided)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log('Setting up Google authentication...');
+    passport.use(new GoogleStrategy({
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/api/auth/google/callback",
+      scope: ['profile', 'email']
+    },
+    async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+      try {
+        const user = { 
+          provider: 'google',
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          claims: {
+            sub: profile.id,
+            email: profile.emails?.[0]?.value,
+            given_name: profile.name?.givenName,
+            family_name: profile.name?.familyName,
+            picture: profile.photos?.[0]?.value
+          }
+        };
+        
+        await upsertUser({
+          id: profile.id,
+          email: profile.emails?.[0]?.value,
+          given_name: profile.name?.givenName,
+          family_name: profile.name?.familyName,
+          picture: profile.photos?.[0]?.value
+        }, 'google');
+        
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }));
+  } else {
+    console.log('Google authentication not configured - missing credentials');
+  }
+
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
@@ -193,6 +243,29 @@ export async function setupAuth(app: Express) {
     });
   }
 
+  // Google auth routes (only if Google strategy is configured)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    app.get("/api/auth/google", 
+      passport.authenticate("google", { scope: ["profile", "email"] })
+    );
+
+    app.get("/api/auth/google/callback",
+      passport.authenticate("google", { 
+        successRedirect: "/",
+        failureRedirect: "/api/login"
+      })
+    );
+  } else {
+    // Fallback routes if Google auth is not configured
+    app.get("/api/auth/google", (req, res) => {
+      res.status(503).json({ message: "Google authentication not configured" });
+    });
+
+    app.get("/api/auth/google/callback", (req, res) => {
+      res.redirect("/api/login");
+    });
+  }
+
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
       res.redirect(
@@ -212,8 +285,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Microsoft auth doesn't use the same token expiry system
-  if (user.provider === 'microsoft') {
+  // Microsoft and Google auth don't use the same token expiry system as Replit
+  if (user.provider === 'microsoft' || user.provider === 'google') {
     return next();
   }
 
