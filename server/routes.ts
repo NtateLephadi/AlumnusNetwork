@@ -65,9 +65,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
+  app.get('/api/auth/methods', (req, res) => {
+    const methods = {
+      replit: true,
+      microsoft: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET)
+    };
+    res.json(methods);
+  });
+
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.claims?.oid;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {

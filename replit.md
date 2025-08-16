@@ -44,6 +44,13 @@ A comprehensive community platform designed to empower University of Cape Town (
 
 ## Recent Changes
 
+### January 11, 2025 - Microsoft Authentication Integration
+- ✅ Added Microsoft OAuth authentication alongside existing Replit auth
+- ✅ Created graceful fallback when Microsoft credentials are not available
+- ✅ Updated landing page to dynamically show available login methods
+- ✅ Added authentication methods API endpoint for frontend detection
+- ✅ Implemented multi-provider authentication support in backend
+
 ### January 11, 2025 - Comprehensive Documentation
 - ✅ Created README files for every folder in the project (11 total README files)
 - ✅ Documented project structure, architecture, and development guidelines

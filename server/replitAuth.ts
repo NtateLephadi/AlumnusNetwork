@@ -1,5 +1,6 @@
 import * as client from "openid-client";
 import { Strategy, type VerifyFunction } from "openid-client/passport";
+import { Strategy as MicrosoftStrategy } from "passport-microsoft";
 
 import passport from "passport";
 import session from "express-session";
@@ -56,14 +57,25 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
+  provider: 'replit' | 'microsoft' = 'replit'
 ) {
-  await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+  if (provider === 'microsoft') {
+    await storage.upsertUser({
+      id: claims.oid || claims.sub,
+      email: claims.mail || claims.email,
+      firstName: claims.given_name || claims.first_name,
+      lastName: claims.family_name || claims.last_name,
+      profileImageUrl: claims.picture || claims.profile_image_url,
+    });
+  } else {
+    await storage.upsertUser({
+      id: claims["sub"],
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+    });
+  }
 }
 
 export async function setupAuth(app: Express) {
@@ -72,15 +84,16 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Setup Replit OIDC
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
+    const user = { provider: 'replit' };
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    await upsertUser(tokens.claims(), 'replit');
     verified(null, user);
   };
 
@@ -98,9 +111,51 @@ export async function setupAuth(app: Express) {
     passport.use(strategy);
   }
 
+  // Setup Microsoft OAuth (optional - only if credentials are provided)
+  if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+    console.log('Setting up Microsoft authentication...');
+    passport.use(new MicrosoftStrategy({
+      clientID: process.env.MICROSOFT_CLIENT_ID,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+      callbackURL: "/api/auth/microsoft/callback",
+      scope: ['user.read']
+    },
+    async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+      try {
+        const user = { 
+          provider: 'microsoft',
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          claims: {
+            sub: profile.id,
+            email: profile.emails?.[0]?.value,
+            given_name: profile.name?.givenName,
+            family_name: profile.name?.familyName,
+            picture: profile.photos?.[0]?.value
+          }
+        };
+        
+        await upsertUser({
+          oid: profile.id,
+          mail: profile.emails?.[0]?.value,
+          given_name: profile.name?.givenName,
+          family_name: profile.name?.familyName,
+          picture: profile.photos?.[0]?.value
+        }, 'microsoft');
+        
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }));
+  } else {
+    console.log('Microsoft authentication not configured - missing credentials');
+  }
+
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
+  // Replit auth routes
   app.get("/api/login", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
@@ -114,6 +169,29 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/api/login",
     })(req, res, next);
   });
+
+  // Microsoft auth routes (only if Microsoft strategy is configured)
+  if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+    app.get("/api/auth/microsoft", 
+      passport.authenticate("microsoft", { scope: ["user.read"] })
+    );
+
+    app.get("/api/auth/microsoft/callback",
+      passport.authenticate("microsoft", { 
+        successRedirect: "/",
+        failureRedirect: "/api/login"
+      })
+    );
+  } else {
+    // Fallback routes if Microsoft auth is not configured
+    app.get("/api/auth/microsoft", (req, res) => {
+      res.status(503).json({ message: "Microsoft authentication not configured" });
+    });
+
+    app.get("/api/auth/microsoft/callback", (req, res) => {
+      res.redirect("/api/login");
+    });
+  }
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
@@ -130,7 +208,17 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Microsoft auth doesn't use the same token expiry system
+  if (user.provider === 'microsoft') {
+    return next();
+  }
+
+  // Replit auth token validation
+  if (!user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
